@@ -67,17 +67,24 @@ function splitQuickPackage(text) {
 
 function extractIllustrationPrompts(stageText) {
   if (!stageText) return [];
-  const lines = stageText.split('\n');
+  // Stop the cover card before the next section heading. Some GPT responses
+  // place "5.3 Interior illustration prompt library" before the first Page heading.
+  const cleanStage = stageText.replace(
+    /^\s{0,3}(?:#{1,6}\s*)?5\.3\s+Interior illustration prompt library\s*$/im,
+    ''
+  );
+  const lines = cleanStage.split('\n');
   const starts = [];
-  const pageHeading = /^\s{0,3}#{0,4}\s*(Cover(?: illustration prompt)?|Page\s*\d+\s*[:—-].*|Page\s*\d+\s*$)/i;
+  const promptHeading = /^\s{0,3}#{0,4}\s*(Cover(?:\s*[—–:-]\s*.*|\s+illustration prompt)?|Page\s*\d+\s*[:—-].*|Page\s*\d+\s*$)/i;
   lines.forEach((line, index) => {
-    if (pageHeading.test(line.trim())) starts.push(index);
+    if (promptHeading.test(line.trim())) starts.push(index);
   });
   if (!starts.length) return [];
   return starts.map((start, index) => {
     const end = index + 1 < starts.length ? starts[index + 1] : lines.length;
     const title = lines[start].replace(/^\s{0,3}#{0,4}\s*/, '').trim();
-    return { title, content: lines.slice(start, end).join('\n').trim() };
+    const content = lines.slice(start, end).join('\n').trim();
+    return { title, content };
   }).filter(item => item.content.length > 30);
 }
 
@@ -90,7 +97,7 @@ export default function StorybookWorkflow() {
   const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [outputs, setOutputs] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY + '-outputs') || '{}'); } catch { return {}; } });
   const [approved, setApproved] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY + '-approved') || '[]'); } catch { return []; } });
-  const [copied, setCopied] = useState(false);
+  const [copiedKey, setCopiedKey] = useState('');
   const [showBrief, setShowBrief] = useState(true);
   const [showAllNote, setShowAllNote] = useState(false);
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY + '-brief', JSON.stringify(form)); localStorage.setItem(STORAGE_KEY + '-outputs', JSON.stringify(outputs)); localStorage.setItem(STORAGE_KEY + '-approved', JSON.stringify(approved)); localStorage.setItem(STORAGE_KEY + '-quick-result', quickResult); } catch {} }, [form, outputs, approved, quickResult]);
@@ -144,7 +151,28 @@ GLOBAL RULES
   }, [quickSections]);
   const current = outputs[active] || { content: '', prompt: '' };
   const updateCurrent = patch => setOutputs(prev => ({ ...prev, [active]: { ...(prev[active] || {}), ...patch } }));
-  const copy = async text => { try { await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } catch { window.alert('Please select the text and copy it manually.'); } };
+  const copy = async (text, key = 'generic') => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        temp.setAttribute('readonly', '');
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(temp);
+        if (!successful) throw new Error('Clipboard copy failed');
+      }
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(current => current === key ? '' : current), 2200);
+    } catch {
+      window.alert('Copy was not completed. Please select the text and copy it manually.');
+    }
+  };
   const generate = () => { updateCurrent({ prompt }); setCopied(false); };
   const approve = () => { setApproved(prev => prev.includes(active) ? prev : [...prev, active]); if (active < 5) setActive(active + 1); };
   const editStage = index => { setApproved(prev => prev.filter(n => n < index)); setOutputs(prev => { const next = { ...prev }; Object.keys(next).forEach(k => { if (Number(k) >= index) delete next[k]; }); return next; }); setActive(index); };
@@ -218,15 +246,15 @@ GLOBAL RULES
     {creationMode === 'quick' ? <section className="ml-quick-card">
       <div className="ml-stage-heading"><div className="ml-stage-number"><Sparkles size={18}/></div><div><div className="ml-v22-eyebrow">QUICK CREATE</div><h3>Your complete storybook package</h3><p>One prompt creates all six stages, including a separate illustration prompt for the cover and every story page.</p></div></div>
       <div className="ml-stage-actions">
-        <button className="ml-primary" onClick={() => { setQuickPrompt(everythingPrompt); setCopied(false); }}><WandSparkles size={15}/> Prepare complete prompt</button>
-        {quickPrompt && <button className="ml-secondary" onClick={() => copy(quickPrompt)}><Copy size={14}/> Copy prompt</button>}
+        <button className="ml-primary" onClick={() => { setQuickPrompt(everythingPrompt); setCopiedKey(''); }}><WandSparkles size={15}/> Prepare complete prompt</button>
+         {quickPrompt && <button className="ml-secondary" onClick={() => copy(quickPrompt, 'quick-prompt')}>{copiedKey === 'quick-prompt' ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button>}
       </div>
       {quickPrompt && <textarea className="ml-output-text prompt" readOnly value={quickPrompt}/>}
       {quickPrompt && <div className="ml-output-block ml-quick-result">
         <label className="ml-field"><span>Paste the complete ChatGPT response here</span><textarea className="ml-output-text result" value={quickResult} onChange={e => { setQuickResult(e.target.value); setQuickReviewOpen(false); }} placeholder="After ChatGPT creates all six stages, paste the entire response here..."/></label>
         <div className="ml-stage-actions">
           <button className="ml-primary" disabled={!quickResult.trim()} onClick={() => setQuickReviewOpen(true)}><ClipboardCheck size={15}/> Organise & review package</button>
-          {quickResult && <button className="ml-secondary" onClick={() => copy(quickResult)}><Copy size={14}/> Copy full response</button>}
+          {quickResult && <button className="ml-secondary" onClick={() => copy(quickResult, 'full-response')}>{copiedKey === 'full-response' ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy full response</>}</button>}
         </div>
         <div className="ml-quick-note">Your response is saved in this browser. Organising it does not change the original pasted text.</div>
       </div>}
@@ -236,18 +264,18 @@ GLOBAL RULES
           <summary><span className="ml-section-number">{String(section.number).padStart(2,'0')}</span><span className="ml-section-title"><strong>{section.title}</strong><small>{section.number === 5 ? `${illustrationCards.length || 'Page-by-page'} illustration prompt entries` : 'Expand to review this stage'}</small></span><ChevronDown size={17}/></summary>
           <div className="ml-package-section-content">
             <textarea className="ml-output-text result ml-section-edit" value={section.content} readOnly />
-            <button className="ml-secondary" onClick={() => copy(section.content)}><Copy size={14}/> Copy this stage</button>
+            <button className="ml-secondary" onClick={() => copy(section.content, `stage-${section.number}`)}>{copiedKey === `stage-${section.number}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy this stage</>}</button>
             {section.number === 5 && <div className="ml-illustration-library">
               <h4>Illustration prompt library</h4>
               <p>Copy each prompt separately when you're ready to create the artwork.</p>
               {illustrationCards.length ? illustrationCards.map((card, index) => <details className="ml-illustration-card" key={`${card.title}-${index}`}>
                 <summary><strong>{card.title}</strong><ChevronDown size={15}/></summary>
-                <div><textarea className="ml-output-text result" readOnly value={card.content}/><button className="ml-secondary" onClick={() => copy(card.content)}><Copy size={14}/> Copy prompt</button></div>
+                <div><textarea className="ml-output-text result" readOnly value={card.content}/><button className={`ml-secondary ${copiedKey === `illustration-${index}` ? "ml-copy-success" : ""}`} onClick={() => copy(card.content, `illustration-${index}`)}>{copiedKey === `illustration-${index}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button></div>
               </details>) : <p className="ml-parse-note">I couldn't identify separate Cover / Page headings automatically. The full Stage 5 text is still available above to copy. Use headings such as “Cover” and “Page 1: ...” for individual prompt cards.</p>}
             </div>}
           </div>
         </details>) : <div className="ml-parse-warning"><strong>We couldn't reliably identify all six stage headings.</strong><p>Please check that the pasted response includes headings “STAGE 1” through “STAGE 6”. Your original response is safe in the text box above.</p></div>}
-        <div className="ml-stage-actions"><button className="ml-secondary" onClick={() => setQuickReviewOpen(false)}>Back to response</button><button className="ml-primary" onClick={() => copy(quickSections.map(section => `STAGE ${section.number} — ${section.title}\n\n${section.content}`).join('\n\n'))} disabled={quickSections.length !== 6}><ClipboardCheck size={15}/> Copy organised package</button></div>
+        <div className="ml-stage-actions"><button className="ml-secondary" onClick={() => setQuickReviewOpen(false)}>Back to response</button><button className="ml-primary" onClick={() => copy(quickSections.map(section => `STAGE ${section.number} — ${section.title}\n\n${section.content}`).join('\n\n'), 'organised-package')} disabled={quickSections.length !== 6}>{copiedKey === 'organised-package' ? <><Check size={15}/> Copied!</> : <><ClipboardCheck size={15}/> Copy organised package</>}</button></div>
       </section>}
     </section> : <div className="ml-workflow-layout"><section className="ml-stage-card"><div className="ml-stage-heading"><div className="ml-stage-number">{String(active+1).padStart(2,'0')}</div><div><div className="ml-v22-eyebrow">STAGE {active+1} OF 6</div><h3>{stages[active].title}</h3><p>{stages[active].detail}</p></div>{approved.includes(active)&&<span className="ml-approved"><CheckCircle2 size={15}/> Approved</span>}</div>
       <div className="ml-stage-actions"><button className="ml-primary" onClick={generate}><WandSparkles size={15}/> {current.prompt?'Refresh stage prompt':'Generate stage prompt'}</button><button className="ml-secondary" onClick={() => { copy(everythingPrompt); setShowAllNote(true); }}><Sparkles size={15}/> Generate Everything prompt</button></div>

@@ -118,3 +118,11 @@
   .ml-package-section-content { padding: 0 12px 12px; }
   .ml-package-review .ml-stage-actions { display: grid; grid-template-columns: 1fr; }
 }
+
+
+/* Clear confirmation after a successful copy */
+.ml-copy-success {
+  color: #315c3b !important;
+  background: #e8f2e8 !important;
+  border-color: #b9d2b9 !important;
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import StorybookWorkflow from './StorybookWorkflow.jsx';
+import StorybookWorkflow from '../StorybookWorkflow.jsx';
 import {
   Sprout, LayoutDashboard, BookOpen, PencilRuler, FolderOpen, Settings,
   Sparkles, ArrowRight, Clock3, WandSparkles, Copy, Check, Menu, X,

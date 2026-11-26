@@ -56,7 +56,42 @@ export default function StorybookWorkflow() {
   };
   const priorStages = stages.slice(0, active).map((s, i) => `\n\nAPPROVED ${s.title.toUpperCase()}\n${outputs[i]?.content || '[This earlier stage has not yet been approved]'}`).join('');
   const prompt = useMemo(() => `${stageInstructions[active]}\n\n${buildBrief(form)}${priorStages}\n\nSTAGE WORKFLOW RULES\nProduce only the requested stage. Use approved prior-stage content as binding context. Preserve all supplied and approved names and decisions exactly. Do not invent contradictions. Clearly label assumptions. Do not continue into later stages. Finish by requesting the creator's review and approval.`, [active, form, outputs]);
-  const everythingPrompt = `${stageInstructions[0]}\n\n${buildBrief(form)}\n\nCreate the complete six-stage production package in sequence: Stage 1 concept and titles; Stage 2 story architecture and Character Bible; Stage 3 exact page-by-page manuscript; Stage 4 storyboard repeating manuscript text verbatim; Stage 5 separate cover plus exactly one prompt per interior page; Stage 6 final continuity and quality-control audit. Use each stage's approved decisions as the source of truth for the next. Preserve supplied names and details exactly. Clearly label assumptions. Keep the cover separate from the requested interior page count. Do not put unrequested text inside illustrations.`;
+  const everythingPrompt = `You are an expert children's picture-book publishing team: author, developmental editor, early-years learning designer, character designer, storyboard artist, illustration art director and print-production quality controller.
+
+TASK
+Create ONE COMPLETE SIX-STAGE PRODUCTION PACKAGE for the project brief below. This is Quick Create, so complete all six stages in this single response. Do not stop after Stage 1 and do not ask for approval between stages. Do not provide only Stage 1. Finish by asking the creator to review the complete package.
+
+PROJECT BRIEF
+${buildBrief(form)}
+
+PRODUCTION STAGES
+STAGE 1 — STORY CONCEPT & TITLES
+Provide three distinct age-appropriate title options, recommend one with a brief reason, write a concise synopsis, state the emotional promise, central story question and simple problem the protagonist will solve. Identify assumptions.
+
+STAGE 2 — STORY ARCHITECTURE & CHARACTER BIBLE
+Outline the opening, inciting moment, development, climax, resolution and emotional arc. Establish coherent setting geography and reusable landmarks. Define every recurring character's exact name, species, age impression, proportions, face, eyes, colours, markings, clothing/accessories, silhouette, personality, mannerisms and relationships. Include a reusable character-lock paragraph for each. Preserve the supplied character design.
+
+STAGE 3 — COMPLETE MANUSCRIPT
+Write EXACTLY ${form.pages === 'Custom length' ? (form.customPages || '20') : (form.pages || '10 story pages').replace(' story pages', '')} numbered interior story pages, excluding the separate cover. For every page provide a short page purpose and final read-aloud text. Keep vocabulary and sentence length appropriate for ${form.age}. Create clear page turns and a satisfying resolution.
+
+STAGE 4 — PAGE-BY-PAGE STORYBOARD
+Create exactly one storyboard entry for every manuscript page. Repeat that page's manuscript text VERBATIM. Describe setting, characters, action, emotion, composition, camera angle/distance, foreground, background and focal point. Keep text and footer areas unobstructed. Do not invent story events.
+
+STAGE 5 — COVER & ILLUSTRATION PROMPTS
+Provide one separate cover concept and one detailed standalone cover prompt, plus EXACTLY one independent detailed illustration prompt for every interior story page. Repeat relevant character-lock details in each applicable prompt. Keep character designs, geography, time progression, palette and art direction consistent. Each interior illustration must occupy an upper illustration panel within the final page layout, leaving the story text area below. Keep the bottom-right footer zone clear for automatic page numbering during final layout. Specify trim size, orientation, 3 mm bleed and 10 mm safe margin as final-layout requirements. Never generate text, captions, lettering, speech bubbles, logos, watermarks, signatures or page numbers inside artwork. Give cover title placement guidance separately from the image prompt.
+
+STAGE 6 — FINAL QUALITY CONTROL
+Audit all six stages. Check exact page count, manuscript/storyboard text matching, character consistency, setting geography, props, time progression, emotional continuity, page-turn flow, resolution, age suitability, grammar, spelling, read-aloud clarity, natural moral, factual accuracy where relevant, separate cover, exactly one illustration prompt per interior page, no unrequested text in artwork, illustration/text layout, bleed, safe margins and automatic bottom-right footer clearance. Return a PASS / NEEDS REVISION checklist with specific stage/page references. Do not silently rewrite approved content.
+
+GLOBAL RULES
+- The cover is separate and is never included in the interior page count.
+- The manuscript is the single source of truth for the storyboard and illustration prompts.
+- Preserve supplied character names and visual traits. Never rename Finnie or change locked design details.
+- Correct obvious typing errors in ordinary descriptive text only when the intended word is unambiguous (for example, "curios" to "curious" and "og" to "of"). Never alter names or intended story details.
+- Clearly label any creative assumptions.
+- Use clear headings and consistent page numbering throughout.
+- Complete all six stages in order in this one response. Do not stop at Stage 1.`;
+
   const current = outputs[active] || { content: '', prompt: '' };
   const updateCurrent = patch => setOutputs(prev => ({ ...prev, [active]: { ...(prev[active] || {}), ...patch } }));
   const copy = async text => { try { await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } catch { window.alert('Please select the text and copy it manually.'); } };
@@ -136,6 +171,6 @@ export default function StorybookWorkflow() {
       <div className="ml-output-block"><div className="ml-output-head"><span><strong>2. AI-generated result</strong><small>Paste the response here. Edit it before approving.</small></span><button disabled={!current.content} onClick={() => copy(current.content || '')}><Copy size={14}/> Copy result</button></div><textarea className="ml-output-text result" value={current.content || ''} onChange={e => { const value=e.target.value; setOutputs(prev=>({...prev,[active]:{...(prev[active]||{}),content:value}})); setApproved(prev=>prev.filter(n=>n<active)); setOutputs(prev=>{const next={...prev}; Object.keys(next).forEach(k=>{if(Number(k)>active) delete next[k];}); return next;}); }} placeholder="Paste the AI's response for this stage here. You can edit it before approving..."/></div>
       <div className="ml-stage-footer"><button className="ml-secondary" onClick={() => setActive(Math.max(0,active-1))} disabled={active===0}><ArrowLeft size={14}/> Previous stage</button><div><button className="ml-secondary" onClick={generate}><RefreshCw size={14}/> Refresh prompt</button><button className="ml-primary" onClick={approve} disabled={!current.content?.trim()}><Check size={15}/> {active===5?'Approve final review':'Approve & continue'} <ArrowRight size={14}/></button></div></div>
     </section><aside className="ml-checklist-card"><div className="ml-v22-eyebrow">STAGE CHECKLIST</div><h3>Keep your workflow tidy</h3>{stages.map((s,i)=><button key={s.short} className={`ml-check-row ${active===i?'selected':''}`} onClick={() => setActive(i)}><span className={approved.includes(i)?'done':''}>{approved.includes(i)?<Check size={12}/>:i+1}</span><span><strong>{s.short}</strong><small>{approved.includes(i)?'Approved':outputs[i]?.content?'Draft saved':'Not started'}</small></span><ChevronRight size={14}/></button>)}<div className="ml-workflow-note"><LockKeyhole size={15}/><span>Approving a stage unlocks the next. Editing the brief resets all stages; editing a stage clears its approval and later drafts.</span></div><button className="ml-compiled" onClick={() => copy(stages.map((s,i)=>`\n\n# ${s.title}\n${outputs[i]?.content || '[Not completed]'}`).join(''))}><ClipboardCheck size={15}/> Copy compiled production package</button></aside></div>}
-    {showAllNote && <div className="ml-all-note"><FileText size={15}/> The Generate Everything prompt has been copied. It requests all six stages in one response; use the guided workflow for review and approval between stages.</div>}
+    {showAllNote && <div className="ml-all-note"><FileText size={15}/> The complete six-stage prompt has been copied. It asks the AI to create the entire package in one response.</div>}
   </div>;
 }

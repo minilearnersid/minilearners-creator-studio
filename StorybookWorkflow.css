@@ -13,3 +13,42 @@
 .ml-quick-result{margin-top:8px}
 .ml-quick-note{background:#f6f5ee;border-radius:8px;padding:10px 12px;color:#858a78;font-size:10px;line-height:1.5}
 @media(max-width:600px){.ml-mode-picker{grid-template-columns:1fr}.ml-mode-picker button{padding:13px}}
+
+
+/* Accessibility pass: stronger text contrast while retaining the warm ivory and sage identity. */
+.ml-storybook-v22 { color: #303a32; }
+.ml-storybook-v22 .ml-v22-eyebrow,
+.ml-storybook-v22 .ml-brief-toggle-right,
+.ml-storybook-v22 .ml-stage-chip,
+.ml-storybook-v22 .ml-output-head button,
+.ml-storybook-v22 .ml-approved,
+.ml-storybook-v22 .ml-check-row,
+.ml-storybook-v22 .ml-compiled { color: #53664f; }
+.ml-storybook-v22 .ml-v22-intro p,
+.ml-storybook-v22 .ml-brief-toggle small,
+.ml-storybook-v22 .ml-section-title small,
+.ml-storybook-v22 .ml-field small,
+.ml-storybook-v22 .ml-progress-top span,
+.ml-storybook-v22 .ml-stage-heading p,
+.ml-storybook-v22 .ml-output-head small,
+.ml-storybook-v22 .ml-check-row small,
+.ml-storybook-v22 .ml-workflow-note,
+.ml-storybook-v22 .ml-print-note { color: #626b5e; }
+.ml-storybook-v22 .ml-field,
+.ml-storybook-v22 .ml-section-title strong,
+.ml-storybook-v22 .ml-brief-toggle strong,
+.ml-storybook-v22 .ml-stage-heading h3,
+.ml-storybook-v22 .ml-output-head strong,
+.ml-storybook-v22 .ml-checklist-card h3 { color: #354236; }
+.ml-storybook-v22 .ml-field input,
+.ml-storybook-v22 .ml-field select,
+.ml-storybook-v22 .ml-field textarea,
+.ml-storybook-v22 .ml-output-text { color: #303a32; }
+.ml-storybook-v22 .ml-field input::placeholder,
+.ml-storybook-v22 .ml-field textarea::placeholder { color: #747b70; opacity: 1; }
+.ml-storybook-v22 .ml-primary { background: #536f50; }
+.ml-storybook-v22 .ml-primary:hover { background: #405b3e; }
+.ml-storybook-v22 .ml-secondary { color: #465d42; border-color: #cbd4c4; }
+.ml-storybook-v22 .ml-all-note { color: #665b3f; }
+.ml-storybook-v22 .ml-stage-chip small { color: #53664f; }
+.ml-storybook-v22 .ml-stage-chip:not(.active):not(.approved) { color: #66715f; }

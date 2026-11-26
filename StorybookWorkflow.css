@@ -52,3 +52,69 @@
 .ml-storybook-v22 .ml-all-note { color: #665b3f; }
 .ml-storybook-v22 .ml-stage-chip small { color: #53664f; }
 .ml-storybook-v22 .ml-stage-chip:not(.active):not(.approved) { color: #66715f; }
+
+
+/* Quick Create package review */
+.ml-package-review {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ml-border, #e7e5dc);
+}
+.ml-package-section,
+.ml-illustration-card {
+  border: 1px solid var(--ml-border, #e7e5dc);
+  border-radius: 14px;
+  background: var(--ml-card, #fffefa);
+  overflow: hidden;
+}
+.ml-package-section > summary,
+.ml-illustration-card > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  cursor: pointer;
+  list-style: none;
+}
+.ml-package-section > summary::-webkit-details-marker,
+.ml-illustration-card > summary::-webkit-details-marker { display: none; }
+.ml-package-section > summary > svg,
+.ml-illustration-card > summary > svg { margin-left: auto; flex: 0 0 auto; }
+.ml-package-section-content {
+  display: grid;
+  gap: 12px;
+  padding: 0 15px 16px;
+}
+.ml-section-edit { min-height: 220px; }
+.ml-illustration-library {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ml-border, #e7e5dc);
+}
+.ml-illustration-library h4 { margin: 0; color: #303a32; }
+.ml-illustration-library > p,
+.ml-parse-note { margin: 0; color: #626b5e; font-size: 13px; }
+.ml-illustration-card > div {
+  display: grid;
+  gap: 10px;
+  padding: 0 12px 14px;
+}
+.ml-illustration-card .ml-output-text { min-height: 160px; }
+.ml-parse-warning {
+  padding: 16px;
+  border: 1px solid #d9c99b;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #51452b;
+}
+.ml-parse-warning p { margin: 6px 0 0; }
+.ml-quick-result { margin-top: 16px; }
+.ml-package-review .ml-stage-actions { justify-content: space-between; flex-wrap: wrap; }
+@media (max-width: 700px) {
+  .ml-package-section > summary { padding: 12px; }
+  .ml-package-section-content { padding: 0 12px 12px; }
+  .ml-package-review .ml-stage-actions { display: grid; grid-template-columns: 1fr; }
+}

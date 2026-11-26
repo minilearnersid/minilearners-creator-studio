@@ -31,45 +31,69 @@ function buildBrief(f) {
   const pages = f.pages === 'Custom length' ? (f.customPages || '20') : (f.pages || '10 story pages').replace(' story pages', '');
   return `PROJECT BRIEF\nWorking title: ${f.title || '[Not supplied: propose options]'}\nTarget age: ${f.age}\nStory length: ${pages} interior story pages, plus a separate cover\nTheme / genre: ${f.theme === 'Other (custom)' ? (f.customTheme || '[Custom theme not supplied]') : (f.theme || '[Develop a suitable theme and identify it as an assumption]')}\nMain character: ${f.characterType === 'Other (custom)' ? (f.customCharacter || '[Custom character not supplied]') : f.characterType}${f.character ? `; creator's character idea: ${f.character}` : ''}\nSupporting characters: ${f.supportingCharacters || 'Add only if the story needs them'}\nSetting / world: ${f.setting || '[Create a vivid, coherent setting and identify it as an assumption]'}\nMain problem / adventure: ${f.conflict || '[Create a simple, age-appropriate solvable problem and identify it as an assumption]'}\nMoral / learning message: ${f.lesson === 'Other (custom)' ? (f.customLesson || '[Custom learning message not supplied]') : (f.lesson || '[Choose a meaningful, non-preachy lesson and identify it as an assumption]')}\nDesired ending: ${f.ending}\nBook format: ${f.storyFormat}\nNarration: ${f.narration}\nPlot structure: ${f.plot}\nEmotional tone: ${f.tone}\nVocabulary: ${f.vocabulary}\nReading experience: ${f.readingLevel}\nDialogue: ${f.dialogue}\n\nCHARACTER DESIGN AND CONTINUITY\nPhysical appearance: ${f.appearance || '[Define precise, repeatable physical traits]'}\nPersonality: ${f.personality || '[Define 3–5 consistent traits]'}\nClothing / accessories: ${f.clothing || '[Specify fixed clothing or state none]'}\nDistinctive features: ${f.distinctive || '[Specify memorable identifying details]'}\nRelationships: ${f.relationships || '[Establish clear relationships]'}\nConsistency level: ${f.consistency}\nPreserve all customer-supplied names, spellings, traits and choices exactly. Never rename a character or silently change a locked decision.\n\nBOOK AND PRINT SPECIFICATIONS\nTrim size: ${f.bookSize === 'Custom size (describe below)' ? (f.customSize || 'Custom dimensions not yet supplied') : f.bookSize}\nOrientation: ${f.orientation}\nBleed: ${f.bleed}\nSafe margin: ${f.safeMargin}\nText placement: ${f.textPlacement}\nIllustration layout: ${f.illustrationPlacement}\nPage numbering: ${f.pageNumbering}\nPage number position: ${f.pageNumberPosition}\nReserved footer space: ${f.footerSpace}\nTreat the cover as separate, not as an interior story page. ${f.pageNumbering.startsWith('Automatic') ? `Reserve a clean footer zone (${f.footerSpace.toLowerCase()}) at ${f.pageNumberPosition.toLowerCase()} on every interior story page for automatic numbering during final layout. Keep characters, focal action and important objects out of that zone. Never generate page numbers in artwork.` : 'Do not include page numbers or a dedicated numbering footer.'}\nBleed and safe margins must be applied in final layout/export, not merely assumed to exist in image prompts.\n\nILLUSTRATION ART DIRECTION\nStyle: ${f.illustrationStyle}${f.customStyle ? `; additional direction: ${f.customStyle}` : ''}\nColor palette: ${f.palette}\nLighting / atmosphere: ${f.lighting}\nBackground detail: ${f.backgroundDetail}\nComposition: ${f.composition}\nNegative prompt: ${f.negativePrompt}\nUse one cohesive art direction across cover and all interior pages. No unrequested text, letters, words, captions, speech bubbles, logos, watermarks, signatures or page numbers inside illustrations.`;
 }
-function splitQuickStages(raw) {
-  const headings = [
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*1\b|1[.)]\s*)[—–:-]?\s*(?:STORY\s*)?CONCEPT\b[^\n]*/i,
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*2\b|2[.)]\s*)[—–:-]?\s*(?:STORY\s*)?ARCHITECTURE\b[^\n]*/i,
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*3\b|3[.)]\s*)[—–:-]?\s*(?:COMPLETE\s*)?MANUSCRIPT\b[^\n]*/i,
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*4\b|4[.)]\s*)[—–:-]?\s*(?:PAGE[- ]BY[- ]PAGE\s*)?STORYBOARD\b[^\n]*/i,
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*5\b|5[.)]\s*)[—–:-]?\s*(?:COVER\s*&\s*)?ILLUSTRATION PROMPTS?\b[^\n]*/i,
-    /(?:^|\n)\s*(?:#{1,4}\s*)?(?:STAGE\s*6\b|6[.)]\s*)[—–:-]?\s*(?:FINAL\s*)?QUALITY CONTROL\b[^\n]*/i
-  ];
-  const matches = headings.map((regex, index) => {
-    const match = regex.exec(raw);
-    return match ? { index, start: match.index + (match[0].startsWith('\n') ? 1 : 0), headingEnd: match.index + match[0].length } : null;
-  }).filter(Boolean).sort((a, b) => a.start - b.start);
-  if (matches.length !== 6) return [];
-  return matches.map((match, i) => ({
-    index: match.index,
-    content: raw.slice(match.start, i < matches.length - 1 ? matches[i + 1].start : raw.length).trim()
-  }));
-}
-
 function Field({ label, value, onChange, options, placeholder, multiline = false, hint }) {
   return <label className="ml-field"><span>{label}</span>{options ? <select value={value} onChange={e => onChange(e.target.value)}>{options.map(v => <option key={v}>{v}</option>)}</select> : multiline ? <textarea rows="2" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}/> : <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />}{hint && <small>{hint}</small>}</label>;
 }
 function Section({ number, title, subtitle, children, open = false }) {
   return <details className="ml-form-section" open={open}><summary><span className="ml-section-number">{number}</span><span className="ml-section-title"><strong>{title}</strong><small>{subtitle}</small></span><ChevronDown size={17}/></summary><div className="ml-section-fields">{children}</div></details>;
 }
+
+const QUICK_STAGE_LABELS = [
+  'Story Concept & Titles',
+  'Story Architecture & Character Bible',
+  'Complete Manuscript',
+  'Page-by-Page Storyboard',
+  'Cover & Illustration Prompts',
+  'Final Quality Control'
+];
+
+function splitQuickPackage(text) {
+  if (!text?.trim()) return [];
+  const heading = /(?:^|\n)\s{0,3}(?:#{1,6}\s*)?STAGE\s*([1-6])\s*(?:[—–:-]\s*|:\s*)([^\n]*)/gi;
+  const matches = [...text.matchAll(heading)];
+  if (matches.length < 5) return [];
+  return matches.map((match, index) => {
+    const start = match.index + (match[0].startsWith('\n') ? 1 : 0);
+    const bodyStart = start + match[0].length - (match[0].startsWith('\n') ? 1 : 0);
+    const end = index + 1 < matches.length ? matches[index + 1].index : text.length;
+    const number = Number(match[1]);
+    return {
+      number,
+      title: QUICK_STAGE_LABELS[number - 1] || match[2].trim(),
+      content: text.slice(bodyStart, end).trim()
+    };
+  });
+}
+
+function extractIllustrationPrompts(stageText) {
+  if (!stageText) return [];
+  const lines = stageText.split('\n');
+  const starts = [];
+  const pageHeading = /^\s{0,3}#{0,4}\s*(Cover(?: illustration prompt)?|Page\s*\d+\s*[:—-].*|Page\s*\d+\s*$)/i;
+  lines.forEach((line, index) => {
+    if (pageHeading.test(line.trim())) starts.push(index);
+  });
+  if (!starts.length) return [];
+  return starts.map((start, index) => {
+    const end = index + 1 < starts.length ? starts[index + 1] : lines.length;
+    const title = lines[start].replace(/^\s{0,3}#{0,4}\s*/, '').trim();
+    return { title, content: lines.slice(start, end).join('\n').trim() };
+  }).filter(item => item.content.length > 30);
+}
+
 export default function StorybookWorkflow() {
   const [form, setForm] = useState(() => { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY + '-brief') || '{}'); return { ...defaults, ...saved, pageNumbering: saved.pageNumbering === 'No page numbers' ? 'No page numbers' : 'Automatic numbering', pageNumberPosition: saved.pageNumberPosition || 'Bottom right' }; } catch { return defaults; } });
   const [active, setActive] = useState(0);
   const [creationMode, setCreationMode] = useState('quick');
   const [quickPrompt, setQuickPrompt] = useState('');
-  const [quickResult, setQuickResult] = useState('');
-  const [openQuickStages, setOpenQuickStages] = useState([0]);
+  const [quickResult, setQuickResult] = useState(() => localStorage.getItem(STORAGE_KEY + '-quick-result') || '');
+  const [quickReviewOpen, setQuickReviewOpen] = useState(false);
   const [outputs, setOutputs] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY + '-outputs') || '{}'); } catch { return {}; } });
   const [approved, setApproved] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY + '-approved') || '[]'); } catch { return []; } });
   const [copied, setCopied] = useState(false);
   const [showBrief, setShowBrief] = useState(true);
   const [showAllNote, setShowAllNote] = useState(false);
-  useEffect(() => { try { localStorage.setItem(STORAGE_KEY + '-brief', JSON.stringify(form)); localStorage.setItem(STORAGE_KEY + '-outputs', JSON.stringify(outputs)); localStorage.setItem(STORAGE_KEY + '-approved', JSON.stringify(approved)); } catch {} }, [form, outputs, approved]);
+  useEffect(() => { try { localStorage.setItem(STORAGE_KEY + '-brief', JSON.stringify(form)); localStorage.setItem(STORAGE_KEY + '-outputs', JSON.stringify(outputs)); localStorage.setItem(STORAGE_KEY + '-approved', JSON.stringify(approved)); localStorage.setItem(STORAGE_KEY + '-quick-result', quickResult); } catch {} }, [form, outputs, approved, quickResult]);
   const update = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setApproved([]);
@@ -107,12 +131,17 @@ Audit all six stages. Check exact page count, manuscript/storyboard text matchin
 GLOBAL RULES
 - The cover is separate and is never included in the interior page count.
 - The manuscript is the single source of truth for the storyboard and illustration prompts.
-- Preserve all supplied character names and visual traits. Never rename characters or change locked design details.
+- Preserve supplied character names and visual traits. Never rename Finnie or change locked design details.
 - Correct obvious typing errors in ordinary descriptive text only when the intended word is unambiguous (for example, "curios" to "curious" and "og" to "of"). Never alter names or intended story details.
 - Clearly label any creative assumptions.
 - Use clear headings and consistent page numbering throughout.
-- Use these exact section headings: STAGE 1 — STORY CONCEPT & TITLES; STAGE 2 — STORY ARCHITECTURE & CHARACTER BIBLE; STAGE 3 — COMPLETE MANUSCRIPT; STAGE 4 — PAGE-BY-PAGE STORYBOARD; STAGE 5 — COVER & ILLUSTRATION PROMPTS; STAGE 6 — FINAL QUALITY CONTROL. Complete all six stages in order in this one response. Do not stop at Stage 1.`;
+- Complete all six stages in order in this one response. Do not stop at Stage 1.`;
 
+  const quickSections = useMemo(() => splitQuickPackage(quickResult), [quickResult]);
+  const illustrationCards = useMemo(() => {
+    const illustrationStage = quickSections.find(section => section.number === 5);
+    return illustrationStage ? extractIllustrationPrompts(illustrationStage.content) : [];
+  }, [quickSections]);
   const current = outputs[active] || { content: '', prompt: '' };
   const updateCurrent = patch => setOutputs(prev => ({ ...prev, [active]: { ...(prev[active] || {}), ...patch } }));
   const copy = async text => { try { await navigator.clipboard.writeText(text); setCopied(true); window.setTimeout(() => setCopied(false), 1500); } catch { window.alert('Please select the text and copy it manually.'); } };
@@ -186,7 +215,41 @@ GLOBAL RULES
       </div>}
     </section>
     {creationMode === 'guided' && <section className="ml-progress-card"><div className="ml-progress-top"><strong>02 · Production progress</strong><span>{approved.length} of 6 stages approved</span></div><div className="ml-progress-track"><span style={{ width: `${approved.length / 6 * 100}%` }}/></div><div className="ml-stage-nav">{stages.map((s,i)=><button key={s.short} className={`ml-stage-chip ${active===i?'active':''} ${approved.includes(i)?'approved':''}`} onClick={() => setActive(i)}><span>{approved.includes(i)?<Check size={13}/>:String(i+1).padStart(2,'0')}</span><small>{s.short}</small></button>)}</div></section>}
-    {creationMode === 'quick' ? <section className="ml-quick-card"><div className="ml-stage-heading"><div className="ml-stage-number"><Sparkles size={18}/></div><div><div className="ml-v22-eyebrow">QUICK CREATE</div><h3>Your complete storybook package</h3><p>Prepare one complete instruction for your preferred AI tool. Built-in AI generation will be added in a later phase.</p></div></div><div className="ml-stage-actions"><button className="ml-primary" onClick={() => { setQuickPrompt(everythingPrompt); setCopied(false); }}><WandSparkles size={15}/> Prepare complete prompt</button>{quickPrompt && <button className="ml-secondary" onClick={() => copy(quickPrompt)}><Copy size={14}/> Copy prompt</button>}</div>{quickPrompt && <><textarea className="ml-output-text prompt" readOnly value={quickPrompt}/><label className="ml-field ml-quick-result"><span>Paste the complete AI response here</span><textarea className="ml-output-text result" value={quickResult} onChange={e => setQuickResult(e.target.value)} placeholder="Paste the complete six-stage storybook package here..."/></label>{quickResult.trim() && <div className="ml-brief-content"><div className="ml-output-head"><strong>Review your six-stage package</strong><small>Open each section to review its content. You can edit the complete response in the text box above.</small></div>{(() => { const parsed = splitQuickStages(quickResult); return parsed.length === 6 ? stages.map((stage, i) => <details className="ml-quick-stage" key={stage.short} open={openQuickStages.includes(i)}><summary onClick={e => { e.preventDefault(); setOpenQuickStages(prev => prev.includes(i) ? prev.filter(n => n !== i) : [...prev, i]); }}><span className="ml-section-number">{String(i + 1).padStart(2, '0')}</span><span className="ml-section-title"><strong>{stage.title}</strong><small>{parsed[i].content.length.toLocaleString()} characters</small></span><ChevronDown size={17}/></summary><div className="ml-section-fields"><textarea className="ml-output-text result" readOnly value={parsed[i].content}/></div></details>) : <div className="ml-quick-parse-note">I couldn't reliably identify all six stage headings in this response yet. You can still review and edit the full response above. Ask your AI tool to use the exact headings “STAGE 1 — STORY CONCEPT & TITLES” through “STAGE 6 — FINAL QUALITY CONTROL”, then paste the response again.</div>; })()}</div>}<div className="ml-quick-note">Quick Create still uses an external AI tool for now. The six expandable sections organise the response for review; they do not generate content inside the app.</div></>}</section> : <div className="ml-workflow-layout"><section className="ml-stage-card"><div className="ml-stage-heading"><div className="ml-stage-number">{String(active+1).padStart(2,'0')}</div><div><div className="ml-v22-eyebrow">STAGE {active+1} OF 6</div><h3>{stages[active].title}</h3><p>{stages[active].detail}</p></div>{approved.includes(active)&&<span className="ml-approved"><CheckCircle2 size={15}/> Approved</span>}</div>
+    {creationMode === 'quick' ? <section className="ml-quick-card">
+      <div className="ml-stage-heading"><div className="ml-stage-number"><Sparkles size={18}/></div><div><div className="ml-v22-eyebrow">QUICK CREATE</div><h3>Your complete storybook package</h3><p>One prompt creates all six stages, including a separate illustration prompt for the cover and every story page.</p></div></div>
+      <div className="ml-stage-actions">
+        <button className="ml-primary" onClick={() => { setQuickPrompt(everythingPrompt); setCopied(false); }}><WandSparkles size={15}/> Prepare complete prompt</button>
+        {quickPrompt && <button className="ml-secondary" onClick={() => copy(quickPrompt)}><Copy size={14}/> Copy prompt</button>}
+      </div>
+      {quickPrompt && <textarea className="ml-output-text prompt" readOnly value={quickPrompt}/>}
+      {quickPrompt && <div className="ml-output-block ml-quick-result">
+        <label className="ml-field"><span>Paste the complete ChatGPT response here</span><textarea className="ml-output-text result" value={quickResult} onChange={e => { setQuickResult(e.target.value); setQuickReviewOpen(false); }} placeholder="After ChatGPT creates all six stages, paste the entire response here..."/></label>
+        <div className="ml-stage-actions">
+          <button className="ml-primary" disabled={!quickResult.trim()} onClick={() => setQuickReviewOpen(true)}><ClipboardCheck size={15}/> Organise & review package</button>
+          {quickResult && <button className="ml-secondary" onClick={() => copy(quickResult)}><Copy size={14}/> Copy full response</button>}
+        </div>
+        <div className="ml-quick-note">Your response is saved in this browser. Organising it does not change the original pasted text.</div>
+      </div>}
+      {quickReviewOpen && quickResult.trim() && <section className="ml-package-review">
+        <div className="ml-stage-heading"><div><div className="ml-v22-eyebrow">PACKAGE REVIEW</div><h3>Your six production stages</h3><p>Open a section to review its content. Copy individual illustration prompts from Stage 5.</p></div></div>
+        {quickSections.length === 6 ? quickSections.map(section => <details className="ml-package-section" key={section.number}>
+          <summary><span className="ml-section-number">{String(section.number).padStart(2,'0')}</span><span className="ml-section-title"><strong>{section.title}</strong><small>{section.number === 5 ? `${illustrationCards.length || 'Page-by-page'} illustration prompt entries` : 'Expand to review this stage'}</small></span><ChevronDown size={17}/></summary>
+          <div className="ml-package-section-content">
+            <textarea className="ml-output-text result ml-section-edit" value={section.content} readOnly />
+            <button className="ml-secondary" onClick={() => copy(section.content)}><Copy size={14}/> Copy this stage</button>
+            {section.number === 5 && <div className="ml-illustration-library">
+              <h4>Illustration prompt library</h4>
+              <p>Copy each prompt separately when you're ready to create the artwork.</p>
+              {illustrationCards.length ? illustrationCards.map((card, index) => <details className="ml-illustration-card" key={`${card.title}-${index}`}>
+                <summary><strong>{card.title}</strong><ChevronDown size={15}/></summary>
+                <div><textarea className="ml-output-text result" readOnly value={card.content}/><button className="ml-secondary" onClick={() => copy(card.content)}><Copy size={14}/> Copy prompt</button></div>
+              </details>) : <p className="ml-parse-note">I couldn't identify separate Cover / Page headings automatically. The full Stage 5 text is still available above to copy. Use headings such as “Cover” and “Page 1: ...” for individual prompt cards.</p>}
+            </div>}
+          </div>
+        </details>) : <div className="ml-parse-warning"><strong>We couldn't reliably identify all six stage headings.</strong><p>Please check that the pasted response includes headings “STAGE 1” through “STAGE 6”. Your original response is safe in the text box above.</p></div>}
+        <div className="ml-stage-actions"><button className="ml-secondary" onClick={() => setQuickReviewOpen(false)}>Back to response</button><button className="ml-primary" onClick={() => copy(quickSections.map(section => `STAGE ${section.number} — ${section.title}\n\n${section.content}`).join('\n\n'))} disabled={quickSections.length !== 6}><ClipboardCheck size={15}/> Copy organised package</button></div>
+      </section>}
+    </section> : <div className="ml-workflow-layout"><section className="ml-stage-card"><div className="ml-stage-heading"><div className="ml-stage-number">{String(active+1).padStart(2,'0')}</div><div><div className="ml-v22-eyebrow">STAGE {active+1} OF 6</div><h3>{stages[active].title}</h3><p>{stages[active].detail}</p></div>{approved.includes(active)&&<span className="ml-approved"><CheckCircle2 size={15}/> Approved</span>}</div>
       <div className="ml-stage-actions"><button className="ml-primary" onClick={generate}><WandSparkles size={15}/> {current.prompt?'Refresh stage prompt':'Generate stage prompt'}</button><button className="ml-secondary" onClick={() => { copy(everythingPrompt); setShowAllNote(true); }}><Sparkles size={15}/> Generate Everything prompt</button></div>
       {current.prompt && <div className="ml-output-block"><div className="ml-output-head"><span><strong>1. Stage prompt</strong><small>Copy this into ChatGPT or your preferred AI tool.</small></span><button onClick={() => copy(current.prompt)}><Copy size={14}/> Copy prompt</button></div><textarea className="ml-output-text prompt" readOnly value={current.prompt}/></div>}
       <div className="ml-output-block"><div className="ml-output-head"><span><strong>2. AI-generated result</strong><small>Paste the response here. Edit it before approving.</small></span><button disabled={!current.content} onClick={() => copy(current.content || '')}><Copy size={14}/> Copy result</button></div><textarea className="ml-output-text result" value={current.content || ''} onChange={e => { const value=e.target.value; setOutputs(prev=>({...prev,[active]:{...(prev[active]||{}),content:value}})); setApproved(prev=>prev.filter(n=>n<active)); setOutputs(prev=>{const next={...prev}; Object.keys(next).forEach(k=>{if(Number(k)>active) delete next[k];}); return next;}); }} placeholder="Paste the AI's response for this stage here. You can edit it before approving..."/></div>

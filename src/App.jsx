@@ -39,7 +39,9 @@ Subject / theme: ${f.subject || '[Suggest a suitable subject or theme]'}
 Activity type: ${f.activity}
 Learning objective: ${f.objective || '[Define a clear, measurable learning objective]'}
 Difficulty: ${f.difficulty}
-Number of pages: ${f.worksheetPages || 'Automatic'}
+Interior worksheet pages: ${f.worksheetPages === 'Custom number' ? (f.worksheetCustomPages || 'Custom number not specified') : (f.worksheetPages || 'Automatic')}
+Separate cover page: ${f.worksheetIncludeCover ? 'Yes, include one separate cover page in addition to the interior worksheet pages' : 'No'}
+Total designed pages: ${f.worksheetPages === 'Custom number' && f.worksheetCustomPages ? Number(f.worksheetCustomPages) + (f.worksheetIncludeCover ? 1 : 0) : (f.worksheetPages === 'Automatic' ? 'Determine an appropriate number' : parseInt(f.worksheetPages, 10) + (f.worksheetIncludeCover ? 1 : 0))}
 Paper size: ${f.paperSize || 'A4 portrait'}
 Visual theme / art direction: ${f.worksheetStyle || 'Cheerful, child-friendly and uncluttered'}
 
@@ -74,7 +76,9 @@ STAGE 4: PAGE-BY-PAGE LAYOUT AND DESIGN
 - Specify illustration subjects and exact quantities wherever counting is involved.
 - Include paper size, orientation, safe margins and print-friendly background guidance.
 - Keep important content away from trim edges and avoid overcrowded pages.
-- Provide a separate illustration prompt for each page when illustrations are needed. Prompts must be self-contained and must not ask the image model to render worksheet text unless explicitly required.
+- Provide a separate, self-contained illustration prompt for every interior worksheet page when illustrations are needed. Label each prompt clearly as 'Page 1: [page title]', 'Page 2: [page title]' and so on.
+- If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone cover illustration prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
+- In Stage 4, put each illustration prompt under its own clearly labelled heading. Keep the prompt text together in one paragraph or clearly delimited block, and do not mix layout notes or copy-button instructions into the prompt itself.
 
 STAGE 5: ANSWER KEY AND TEACHER NOTES
 - Provide a complete answer key for every activity that has a correct answer.
@@ -86,7 +90,7 @@ STAGE 6: FINAL QUALITY CONTROL
 - Verify age suitability, spelling, grammar, clarity and learning-objective alignment.
 - Check every count, sequence, question, answer and illustration quantity.
 - Check that all answer-key entries match the actual worksheet tasks.
-- Check page count, page size, margins, writing space and print readability.
+- Check the exact number of interior pages separately from any optional cover page. Verify the cover is additional and is not counted as an activity page. Check page size, margins, writing space and print readability.
 - Identify any assumptions or items that need a human review before publication.
 - End with a concise pass / needs-review checklist. Never mark a check as passed unless it has actually been verified.
 
@@ -117,7 +121,7 @@ function App() {
     bookSize: '20 × 20 cm square', customSize: '', orientation: 'Square', textPlacement: 'Text below illustration', illustrationPlacement: 'One full-page illustration per story page',
     bleed: '3 mm', safeMargin: '10 mm', pageNumbering: 'Manual (leave blank space)', pageNumberPosition: 'Bottom center', footerSpace: 'Small',
     illustrationStyle: 'Soft watercolor', palette: 'Warm natural woodland palette', lighting: 'Soft, gentle natural lighting', consistency: 'Character locked', backgroundDetail: 'Moderate detail, uncluttered', composition: 'Clear focal point with child-friendly framing', customStyle: '', negativePrompt: 'No extra characters, no inconsistent clothing, no distorted anatomy, no watermarks, no logos, no unrequested lettering or text.',
-    subject: '', activity: 'Tracing', objective: '', difficulty: 'Beginner', worksheetPages: 'Automatic', paperSize: 'A4 portrait', worksheetStyle: 'Cheerful, child-friendly and uncluttered'
+    subject: '', activity: 'Tracing', objective: '', difficulty: 'Beginner', worksheetPages: 'Automatic', worksheetCustomPages: '', worksheetIncludeCover: false, paperSize: 'A4 portrait', worksheetStyle: 'Cheerful, child-friendly and uncluttered'
   });
 
   const isStory = page === 'storybook';
@@ -367,7 +371,9 @@ function App() {
             <label className="field full"><span>Subject or theme</span><input value={form.subject} onChange={e => update('subject', e.target.value)} placeholder="e.g. Farm animals, numbers 1–10"/></label>
             <label className="field"><span>Activity type</span><select value={form.activity} onChange={e => update('activity', e.target.value)}>{['Tracing','Matching','Counting','Coloring','Cut and paste','Sorting','Mazes','Patterns','Phonics','Writing','Mixed activity pack'].map(v => <option key={v}>{v}</option>)}</select></label>
             <label className="field"><span>Learning objective</span><input value={form.objective} onChange={e => update('objective', e.target.value)} placeholder="e.g. Recognize and trace numbers 1–10"/></label>
-            <label className="field"><span>Number of pages</span><select value={form.worksheetPages} onChange={e => update('worksheetPages', e.target.value)}><option>Automatic</option><option>1 page</option><option>2 pages</option><option>3 pages</option><option>4 pages</option><option>5 pages</option><option>6 pages</option><option>10 pages</option><option>Custom (specify in theme)</option></select></label>
+            <label className="field"><span>Number of interior pages</span><select value={form.worksheetPages} onChange={e => update('worksheetPages', e.target.value)}><option>Automatic</option><option>1 page</option><option>2 pages</option><option>3 pages</option><option>4 pages</option><option>5 pages</option><option>6 pages</option><option>10 pages</option><option value="Custom number">Custom number</option></select></label>
+            {form.worksheetPages === 'Custom number' && <label className="field"><span>Enter number of interior pages</span><input type="number" min="1" max="100" step="1" value={form.worksheetCustomPages} onChange={e => update('worksheetCustomPages', e.target.value)} placeholder="e.g. 12"/></label>}
+            <label className="field full worksheet-cover-option"><span className="worksheet-cover-label"><input type="checkbox" checked={form.worksheetIncludeCover} onChange={e => update('worksheetIncludeCover', e.target.checked)}/> Include a separate cover page</span><small>The cover is additional to your selected number of interior worksheet pages.</small></label>
             <label className="field"><span>Paper size</span><select value={form.paperSize} onChange={e => update('paperSize', e.target.value)}><option>A4 portrait</option><option>A4 landscape</option><option>A5 portrait</option><option>US Letter portrait</option><option>US Letter landscape</option></select></label>
             <label className="field full"><span>Visual theme or art direction</span><input value={form.worksheetStyle} onChange={e => update('worksheetStyle', e.target.value)} placeholder="e.g. Soft pastel farm illustrations, clean white background"/></label>
           </div>

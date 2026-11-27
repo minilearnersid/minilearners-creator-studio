@@ -72,20 +72,28 @@ STAGE 3: COMPLETE WORKSHEET CONTENT
 STAGE 4: PAGE-BY-PAGE LAYOUT AND DESIGN
 - Give a separate layout plan for every page.
 - Specify the placement of headings, instructions, activity elements, illustrations, response areas and page numbers if needed.
-- Include generous writing, colouring, cutting or tracing space appropriate to the activity.
+- Include generous writing, colouring, cutting or tracing space appropriate to this activity.
 - Specify illustration subjects and exact quantities wherever counting is involved.
 - Include paper size, orientation, safe margins and print-friendly background guidance.
 - Keep important content away from trim edges and avoid overcrowded pages.
-- Provide a separate, self-contained illustration prompt for every interior worksheet page when illustrations are needed. Label each prompt clearly as 'Page 1: [page title]', 'Page 2: [page title]' and so on.
-- If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone cover illustration prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
-- COVER DESIGN RULES: Design a simple, attractive front cover, not an inventory of the worksheet contents. Use only 3–5 representative characters or objects from the theme. Select a small visually appealing variety. Never reproduce every animal, object, activity, item quantity or learning example from the interior pages. Do not arrange subjects in numbered groups, counting grids, matching rows or catalogues. Create one cohesive scene with a clear visual focal point. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. The cover should look like a professionally illustrated children's workbook cover, not an interior activity page.
-- The cover prompt must be independent of the interior illustration prompts. Do not copy the interior page quantity requirements into the cover prompt.
-- Create ONE complete, finished front-cover design that combines the illustration and its typography in the same image. Do not produce a text-free illustration as the default and do not request a separate typography-finishing deliverable.
+- IMPORTANT: The page-generation prompts must create COMPLETE, FINISHED, STANDALONE WORKSHEET PAGES, not isolated illustrations, clipart, character assets or illustration-only scenes.
+- Provide one self-contained complete-page generation prompt for every interior worksheet page. Label each prompt exactly as 'Page 1: [page title]', 'Page 2: [page title]' and so on.
+- Each complete-page prompt must instruct the image generator to render the entire printable worksheet page in the requested paper size and orientation, including the exact student-facing title, exact instruction text, all numbered/lettered activity labels, every required illustration, the correct shuffled arrangement, and all response areas.
+- For matching activities, include both columns and every matching picture directly in the finished page. Leave the space between corresponding columns clear for children to draw their own matching lines. Do not draw connecting lines, arrows or answer indicators.
+- For tracing activities, include the actual dotted tracing paths and adequate practice space in the finished page. For colouring activities, include the actual outlined images. For cut-and-paste activities, include the actual cut-out pieces and clearly marked cutting areas. Adapt the complete-page prompt to the selected activity type.
+- Repeat exact worksheet wording and content from Stage 3. Do not paraphrase, omit, invent or change questions, labels, numbering, answer choices or quantities.
+- Require a clean, print-friendly background, legible child-friendly typography, consistent illustration style, safe margins, high contrast, and a balanced uncluttered layout. All text must be correctly spelled and readable. Do not add extra text, logos, watermarks or decorative labels.
+- Matching partners must look exactly identical in the same page, including pose, colours, proportions and markings. Specify the exact shuffled order from Stage 3. Never let the image generator improvise or substitute dinosaurs, objects or answer choices.
+- If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone COMPLETE COVER generation prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
+- COVER DESIGN RULES: Design a simple, attractive front cover, not an inventory of worksheet contents. Use only 3–5 representative characters or objects from the theme. Select a small visually appealing variety. Never reproduce every animal, object, activity, item quantity or learning example from the interior pages. Do not arrange subjects in numbered groups, counting grids, matching rows or catalogues. Create one cohesive scene with a clear visual focal point. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. The cover should look like a professionally illustrated children's workbook cover, not an interior activity page.
+- The cover prompt must be independent of the interior worksheet prompts. Do not copy interior activity quantities or layouts into the cover prompt.
+- Create ONE complete, finished front-cover design that combines the artwork and typography in the same image. Do not produce a text-free illustration as the default and do not request a separate typography-finishing deliverable.
 - Include the exact approved worksheet title, one short appealing subtitle that accurately describes the activity, and the target age label formatted as 'Ages [minimum]–[maximum]' directly inside the cover image prompt. Use the working title from the project brief unless Stage 1 explicitly recommends and approves a different title; keep the chosen title consistent everywhere.
 - Give precise typography direction inside the cover prompt: placement, font characteristics, clear size hierarchy, alignment, text colours with strong contrast, and visual balance. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. Keep all text readable and do not cover faces or important parts of the main illustration.
 - Render the wording accurately and spell every text element exactly as supplied. Do not add extra words, decorative lettering, labels, banners, logos or watermarks. If the image model cannot reliably render text, identify that limitation in the quality-control notes and provide the exact wording and layout as a fallback, but still make the complete integrated cover the primary deliverable.
-- In Stage 4, put the complete cover prompt under its own clearly labelled heading, such as 'Cover: [title]'. The prompt must describe both artwork and typography as one finished composition.
-- In Stage 4, put each illustration prompt under its own clearly labelled heading. Keep each prompt text together in one paragraph or clearly delimited block, and do not mix layout notes or copy-button instructions into the prompt itself.
+- In Stage 4, put the complete cover prompt under its own clearly labelled heading, exactly 'Cover: [title]'. The prompt must describe both artwork and typography as one finished composition.
+- In Stage 4, put each complete interior page-generation prompt under its own clearly labelled heading, exactly 'Page [number]: [page title]'. Each prompt must describe the complete finished worksheet page, not just the illustrations.
+- Keep every prompt self-contained and copyable as one block. Do not mix layout notes, teacher notes, answer keys or copy-button instructions into the prompt itself.
 
 STAGE 5: ANSWER KEY AND TEACHER NOTES
 - Provide a complete answer key for every activity that has a correct answer.
@@ -98,7 +106,7 @@ STAGE 6: FINAL QUALITY CONTROL
 - Check every count, sequence, question, answer and illustration quantity.
 - Check that all answer-key entries match the actual worksheet tasks.
 - Check the exact number of interior pages separately from any optional cover page. Verify the cover is additional and is not counted as an activity page. Check page size, margins, writing space and print readability.
-- When a separate cover is requested, verify that Stage 4 includes one standalone cover prompt for a complete integrated cover design, with the exact title, subtitle and age label rendered as part of the artwork, plus clear placement, font direction, alignment and colour guidance. Do not treat a text-free illustration plus separate typography notes as the default cover deliverable.
+- Verify that Stage 4 includes one complete-page generation prompt for every interior page and, when selected, one complete integrated cover prompt. Each interior prompt must include the actual page content, text, illustrations, labels, layout and response areas. The cover prompt must include artwork, exact title, subtitle and age label together. Do not treat illustration-only prompts or separate typography notes as complete deliverables.
 - Identify any assumptions or items that need a human review before publication.
 - End with a concise pass / needs-review checklist. Never mark a check as passed unless it has actually been verified.
 
@@ -108,7 +116,7 @@ GLOBAL QUALITY RULES
 - Keep the visual direction cohesive across all pages.
 - Use developmentally appropriate activities and simple language.
 - Keep the final package organised under the six stage headings above.
-- Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it.
+- Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it. Stage 4 prompts must be ready to generate complete finished page images, not individual illustration assets.
 - When a separate cover is requested, keep its artwork simple and selective: 3–5 representative theme elements maximum, never every interior character or quantity. Make the complete cover, including title, subtitle and age label, one integrated design.`;
 }
 

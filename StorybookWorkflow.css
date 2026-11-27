@@ -240,3 +240,65 @@
     padding: 15px !important;
   }
 }
+
+
+/* Readability pass: increase small interface text by one step on desktop.
+   Keep display headings and the existing layout unchanged. */
+.ml-storybook-v22 .ml-v22-intro p { font-size: 12px; }
+.ml-storybook-v22 .ml-brief-toggle strong { font-size: 15px; }
+.ml-storybook-v22 .ml-brief-toggle small,
+.ml-storybook-v22 .ml-brief-toggle-right { font-size: 11px; }
+.ml-storybook-v22 .ml-section-title strong { font-size: 13px; }
+.ml-storybook-v22 .ml-section-title small { font-size: 10px; }
+.ml-storybook-v22 .ml-field { font-size: 11px; }
+.ml-storybook-v22 .ml-field input,
+.ml-storybook-v22 .ml-field select,
+.ml-storybook-v22 .ml-field textarea { font-size: 12px; }
+.ml-storybook-v22 .ml-field small,
+.ml-storybook-v22 .ml-print-note,
+.ml-storybook-v22 .ml-brief-save { font-size: 10px; }
+.ml-storybook-v22 .ml-progress-top,
+.ml-storybook-v22 .ml-stage-chip small,
+.ml-storybook-v22 .ml-stage-heading p,
+.ml-storybook-v22 .ml-output-head strong { font-size: 11px; }
+.ml-storybook-v22 .ml-stage-chip > span { font-size: 10px; }
+.ml-storybook-v22 .ml-primary,
+.ml-storybook-v22 .ml-secondary { font-size: 11px; }
+.ml-storybook-v22 .ml-output-head small,
+.ml-storybook-v22 .ml-output-head button { font-size: 10px; }
+.ml-storybook-v22 .ml-output-text { font-size: 11px; }
+.ml-storybook-v22 .ml-check-row strong { font-size: 11px; }
+.ml-storybook-v22 .ml-check-row small,
+.ml-storybook-v22 .ml-workflow-note { font-size: 10px; }
+.ml-storybook-v22 .ml-checklist-card h3 { font-size: 16px; }
+.ml-storybook-v22 .ml-quick-note,
+.ml-storybook-v22 .ml-parse-note { font-size: 11px; }
+.ml-storybook-v22 .ml-illustration-library > p { font-size: 14px; }
+
+/* Worksheet Studio and shared workspace typography.
+   These rules live here so both studios receive the same readability improvement. */
+.app-shell .studio-page-intro p,
+.app-shell .builder-heading p,
+.app-shell .field,
+.app-shell .builder-footer,
+.app-shell .output-description,
+.app-shell .empty-output p,
+.app-shell .output-hint,
+.app-shell .mode-tag,
+.app-shell .soon-tag { font-size: calc(1em + 1px); }
+
+.app-shell .field input,
+.app-shell .field select,
+.app-shell .field textarea { font-size: 12px; }
+
+.app-shell .prompt-preview { font-size: 12px; line-height: 1.65; }
+
+.app-shell .output-status,
+.app-shell .output-top .eyebrow,
+.app-shell .deliverable-item { font-size: calc(1em + 1px); }
+
+/* Preserve comfortable reading on narrow screens without enlarging major headings. */
+@media (max-width: 700px) {
+  .ml-storybook-v22 .ml-output-text { font-size: 12px; }
+  .app-shell .prompt-preview { font-size: 12px; }
+}

@@ -249,7 +249,7 @@ function App() {
             .prompt-library-panel { margin-bottom: 18px; padding: 22px; }
             .random-idea-card { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px; margin:16px 0; border:1px solid #dfe8dc; border-radius:14px; background:#f6f8f3; }
             .random-idea-copy { min-width:0; flex:1; }
-            .random-idea-copy h3 { margin:6px 0; }
+            .random-idea-copy h3 { margin:6px 0; font-size:calc(1.17em - 1px); }
             .random-idea-copy p { margin:0; color:#68736a; }
             .random-idea-result { display:flex; flex-direction:column; gap:4px; margin-top:12px; padding:12px; border-radius:10px; background:#fff; border:1px solid #e3e9df; }
             .random-idea-result span,.random-idea-result small { color:#68736a; }

@@ -78,6 +78,8 @@ STAGE 4: PAGE-BY-PAGE LAYOUT AND DESIGN
 - Keep important content away from trim edges and avoid overcrowded pages.
 - Provide a separate, self-contained illustration prompt for every interior worksheet page when illustrations are needed. Label each prompt clearly as 'Page 1: [page title]', 'Page 2: [page title]' and so on.
 - If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone cover illustration prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
+- COVER DESIGN RULES: Design a simple, attractive front cover, not an inventory of the worksheet contents. Use only 3–5 representative characters or objects from the theme. Select a small visually appealing variety. Never reproduce every animal, object, activity, item quantity or learning example from the interior pages. Do not arrange subjects in numbered groups, counting grids, matching rows or catalogues. Create one cohesive scene with a clear visual focal point. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. The cover should look like a professionally illustrated children's workbook cover, not an interior activity page.
+- The cover prompt must be independent of the interior illustration prompts. Do not copy the interior page quantity requirements into the cover prompt. Do not ask the image model to render text, letters, numbers, labels, banners, logos or watermarks; cover typography will be typeset separately.
 - In Stage 4, put each illustration prompt under its own clearly labelled heading. Keep the prompt text together in one paragraph or clearly delimited block, and do not mix layout notes or copy-button instructions into the prompt itself.
 
 STAGE 5: ANSWER KEY AND TEACHER NOTES
@@ -100,7 +102,8 @@ GLOBAL QUALITY RULES
 - Keep the visual direction cohesive across all pages.
 - Use developmentally appropriate activities and simple language.
 - Keep the final package organised under the six stage headings above.
-- Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it.`;
+- Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it.
+- When a separate cover is requested, keep its artwork simple and selective: 3–5 representative theme elements maximum, never every interior character or quantity.`;
 }
 
 function App() {

@@ -45,6 +45,18 @@ Total designed pages: ${f.worksheetPages === 'Custom number' && f.worksheetCusto
 Paper size: ${f.paperSize || 'A4 portrait'}
 Visual theme / art direction: ${f.worksheetStyle || 'Cheerful, child-friendly and uncluttered'}
 
+MANDATORY AGE-RANGE AND DIFFICULTY VALIDATION
+Apply this rule to EVERY activity type in this project, not only counting or mathematics. Before writing the worksheet content, determine the actual developmental demands of the selected activity and whether they are appropriate for the full target age range.
+- Do not make the whole product artificially easy simply because the age range includes younger children.
+- The core activity must provide a meaningful, achievable challenge for the intended age range and must genuinely practise the stated learning objective.
+- For broad age ranges, design a suitable core activity and use optional support for children who need it and optional extensions for children who are ready. Do not default every page to the lowest possible skill level.
+- Match vocabulary, instruction length, number of steps, choices, visual discrimination, memory demands, reasoning, fine-motor demands, reading/writing expectations and task duration to the selected age and activity type.
+- Do not assume children can read, write, count, trace, cut, classify, sequence or perform other skills unless those skills are appropriate prerequisites or are taught/scaffolded within the package.
+- Beginner means an accessible introduction to the intended skill, not a trivial task substantially below the selected age. Intermediate and Advanced must increase meaningful cognitive or skill demands without relying on clutter, tiny illustrations, confusing layouts or excessive item counts.
+- Progress difficulty gradually across pages. The first activity should still be worthwhile for the target age; do not spend a full page on overly obvious or developmentally trivial practice unless explicitly requested.
+- If the target age spans different readiness levels, clearly distinguish core tasks, optional support and optional challenge.
+- Before finalising, revise any page that is clearly too easy, too difficult or dependent on unintroduced skills.
+
 REQUIRED SIX-STAGE WORKSHEET PRODUCTION PACKAGE
 
 STAGE 1: WORKSHEET CONCEPT
@@ -59,6 +71,9 @@ STAGE 2: LEARNING ARCHITECTURE
 - Set the difficulty and any prerequisite skills.
 - Ensure the number of activities and cognitive demands are suitable for the target age.
 - Avoid unnecessary complexity, excessive instructions or tasks requiring skills beyond the selected age.
+- Explicitly evaluate whether the core task is meaningfully challenging for the selected age range; reject activities that are substantially below the expected level, even if labelled Beginner.
+- Apply age-appropriate validation to every activity type, including matching, counting, tracing, handwriting, colouring, cutting, puzzles, patterns, sorting, sequencing, literacy, science, creative tasks and mixed-activity packs.
+- For broad age ranges, provide an age-appropriate core activity plus optional scaffolding and extension rather than making every page suitable only for the youngest child.
 
 STAGE 3: COMPLETE WORKSHEET CONTENT
 - Write the exact student-facing title, instructions, questions, labels, tracing content and tasks.
@@ -103,6 +118,9 @@ STAGE 5: ANSWER KEY AND TEACHER NOTES
 
 STAGE 6: FINAL QUALITY CONTROL
 - Verify age suitability, spelling, grammar, clarity and learning-objective alignment.
+- Conduct an explicit developmental difficulty audit for EVERY activity type and every page. Check actual cognitive demands, prerequisites, vocabulary, instruction length, number of steps and choices, visual discrimination, reasoning, fine-motor demands, and expected independence.
+- Reject pages that are substantially too easy or too difficult for the selected age range. Do not treat a Beginner label as permission to create trivial activities.
+- For broad age ranges, verify that the core activity is meaningful for the range and that optional support and extension are clearly identified where useful.
 - Check every count, sequence, question, answer and illustration quantity.
 - Check that all answer-key entries match the actual worksheet tasks.
 - Check the exact number of interior pages separately from any optional cover page. Verify the cover is additional and is not counted as an activity page. Check page size, margins, writing space and print readability.
@@ -115,6 +133,9 @@ GLOBAL QUALITY RULES
 - Never invent ambiguous answers or inconsistent quantities.
 - Keep the visual direction cohesive across all pages.
 - Use developmentally appropriate activities and simple language.
+- Apply age-range and developmental difficulty validation universally across all worksheet activity types, not only counting or mathematics.
+- Never confuse Beginner with trivial or below-age work. The task must meaningfully practise the selected learning objective while remaining achievable for the intended age.
+- For broad age ranges, balance the core task with optional support and extension instead of making every page artificially easy.
 - Keep the final package organised under the six stage headings above.
 - Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it. Stage 4 prompts must be ready to generate complete finished page images, not individual illustration assets.
 - When a separate cover is requested, keep its artwork simple and selective: 3–5 representative theme elements maximum, never every interior character or quantity. Make the complete cover, including title, subtitle and age label, one integrated design.`;

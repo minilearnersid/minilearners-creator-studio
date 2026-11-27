@@ -43,10 +43,9 @@ function extractPagePrompts(stageText) {
   if (!stageText) return [];
   const lines = stageText.split('\n');
 
-  // Accept headings with or without numbered subsection prefixes, e.g.
-  // "Cover: Dinosaur Matching Fun" and "4.4 Cover: Dinosaur Matching Fun".
-  const headingRe = /^[ \t]{0,3}(?:#{1,6}[ \t]*)?(?:\*\*)?(?:(?:\d+(?:\.\d+)*[.)]?[ \t]+)?(?:(Worksheet\s+)?Page\s+(\d+)\s*[:—–-]\s*([^\n*]+))|(?:(?:\d+(?:\.\d+)*[.)]?[ \t]+)?(Cover(?:\s+Page)?\s*[:：—–-]\s*([^\n*]+)|Cover\s+Illustration\s+Prompt)))\s*(?:\*\*)?[ \t]*$/i;
-
+  // Accept plain headings and numbered subsection headings, such as
+  // "Page 5: Super Dino Matching!" or "4.5 Page 5: Super Dino Matching!".
+  const headingRe = /^[ \t]{0,3}(?:#{1,6}[ \t]*)?(?:\*\*)?(?:\d+(?:\.\d+)*[.)]?[ \t]+)?(?:(?:Worksheet\s+)?Page\s+(\d+)\s*[:—–-]\s*([^\n*]+)|(Cover(?:\s+Page)?\s*[:：—–-]\s*([^\n*]+)|Cover\s+Illustration\s+Prompt))\s*(?:\*\*)?[ \t]*$/i;
   const starts = [];
   lines.forEach((line, index) => {
     const match = line.trim().match(headingRe);
@@ -60,24 +59,24 @@ function extractPagePrompts(stageText) {
       .filter(line => !/^\s*Copy\s+(?:Page\s+\d+|Cover)\s+prompt\s*$/i.test(line))
       .join('\n').trim();
 
-    // Ignore descriptive notes and retain the actual self-contained prompt.
-    const promptLines = block.split('\n');
-    const promptStart = promptLines.findIndex(line =>
-      /^\s*(Create|Draw|Generate|Illustrate|Design)\b/i.test(line.trim())
+    // "Reuse" is included because a page may intentionally reuse previously
+    // generated assets instead of requesting new illustrations.
+    const promptStart = block.split('\n').findIndex(line =>
+      /^\s*(Create|Draw|Generate|Illustrate|Design|Reuse)\b/i.test(line.trim())
     );
     if (promptStart < 0) return;
 
-    const prompt = promptLines.slice(promptStart).join('\n').trim();
-    const isCover = Boolean(entry.match[4]);
+    const prompt = block.split('\n').slice(promptStart).join('\n').trim();
+    const isCover = Boolean(entry.match[3]);
     const title = isCover
-      ? `Cover: ${(entry.match[5] || 'Complete cover design').trim()}`
-      : `Page ${entry.match[2]}: ${(entry.match[3] || '').trim()}`;
+      ? `Cover: ${(entry.match[4] || 'Complete cover design').trim()}`
+      : `Page ${entry.match[1]}: ${(entry.match[2] || '').trim()}`;
 
     if (prompt.length > 35) {
       cards.push({
         title,
         content: prompt,
-        sort: isCover ? 99 : Number(entry.match[2])
+        sort: isCover ? 0 : Number(entry.match[1])
       });
     }
   });

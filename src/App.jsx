@@ -261,14 +261,22 @@ function App() {
             .worksheet-brief-grid { margin-top:20px; }
             .worksheet-brief-grid > .field.full:first-child .eyebrow { font-size:calc(1em + 1px); }
             .worksheet-brief-grid > .field.full:first-child h3 { font-size:calc(1.17em + 1px); }
-            .worksheet-brief-grid > .field.full:first-child .field-note { font-size:calc(0.9em + 1px); }
-            .worksheet-brief-grid .field > span { font-size:calc(1em + 1px); }
+            .worksheet-brief-grid .field > span {
+              font-size:calc(1em + 1px);
+              font-weight:800;
+              color:#485442;
+            }
+            .worksheet-brief-grid > .field.full:first-child .field-note,
+            .worksheet-brief-grid .field-note {
+              font-size:calc(0.9em + 1px);
+              font-weight:600;
+              color:#596451;
+            }
             .worksheet-brief-grid input,
             .worksheet-brief-grid select,
             .worksheet-brief-grid textarea { font-size:calc(1em + 1px); }
             .worksheet-brief-grid input::placeholder,
             .worksheet-brief-grid textarea::placeholder { font-size:calc(1em + 1px); }
-            .worksheet-brief-grid .field-note { font-size:calc(0.9em + 1px); }
             .builder-footer > span { font-size:calc(0.9em + 1px); }
             .worksheet-brief-grid h3 { margin:5px 0 0; }
             @media(max-width:700px) {

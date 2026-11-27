@@ -14,28 +14,43 @@ const STAGE_TITLES = [
 
 function splitPackage(source) {
   if (!source?.trim()) return [];
-  const re = /(?:^|\n)\s{0,3}(?:#{1,6}\s*)?(?:STAGE\s*)?([1-6])\s*[.:—–-]+\s*([^\n]*)/gi;
+  // Only accept explicit STAGE headings. Requiring the word STAGE prevents
+  // numbered subsections such as "1.1 Worksheet concept" from being mistaken
+  // for additional production stages.
+  const re = /(?:^|\n)[ \t]{0,3}(?:#{1,6}[ \t]*)?(?:\*\*)?STAGE[ \t]+([1-6])(?:\*\*)?[ \t]*(?:[:：.、—–-]+)[ \t]*([^\n]*)/gim;
   const matches = [...source.matchAll(re)];
-  const unique = matches.filter((m, i) => !i || Number(m[1]) !== Number(matches[i - 1][1]));
-  if (unique.length !== 6 || unique.some((m, i) => Number(m[1]) !== i + 1)) return [];
-  return unique.map((m, i) => {
-    const start = m.index + (m[0].startsWith('\n') ? 1 : 0);
-    const bodyStart = start + m[0].length - (m[0].startsWith('\n') ? 1 : 0);
-    const end = i < 5 ? unique[i + 1].index : source.length;
-    return { number: i + 1, title: STAGE_TITLES[i], content: source.slice(bodyStart, end).trim() };
+  const byNumber = new Map();
+  for (const match of matches) {
+    const number = Number(match[1]);
+    if (!byNumber.has(number)) byNumber.set(number, match);
+  }
+  const ordered = [...byNumber.entries()].sort((a, b) => a[0] - b[0]);
+  if (ordered.length !== 6 || ordered.some(([number], index) => number !== index + 1)) return [];
+  return ordered.map(([number, match], index) => {
+    const headingStart = match.index + (match[0].startsWith('\n') ? 1 : 0);
+    const bodyStart = match.index + match[0].length;
+    const next = ordered[index + 1]?.[1];
+    const end = next ? next.index : source.length;
+    return {
+      number,
+      title: STAGE_TITLES[number - 1],
+      content: source.slice(bodyStart, end).trim()
+    };
   });
 }
 
 function extractPagePrompts(stageText) {
   if (!stageText) return [];
   const lines = stageText.split('\n');
-  const heading = /^\s{0,3}(?:#{1,6}\s*)?(?:\*\*)?(?:Page\s*\d+\s*(?:[—–:-]|\s)|Worksheet\s*Page\s*\d+\s*(?:[—–:-]|\s)|Activity\s*\d+\s*(?:[—–:-]|\s)|Illustration\s*Prompt\s*(?:\d+)?\s*(?:[—–:-]|$)).*$/i;
+  const heading = /^[ \t]{0,3}(?:#{1,6}[ \t]*)?(?:\*\*)?Illustration\s+prompt(?:\s*\d+)?\s*(?::|—|–|-)[^\n]*?(?:\*\*)?[ \t]*$/i;
   const starts = [];
   lines.forEach((line, index) => { if (heading.test(line.trim())) starts.push(index); });
   return starts.map((start, i) => {
-    const rawTitle = lines[start].trim().replace(/^\s{0,3}#{1,6}\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+    const rawTitle = lines[start].trim()
+      .replace(/^[ \t]{0,3}#{1,6}[ \t]*/, '')
+      .replace(/^\*\*/, '').replace(/\*\*[ \t]*$/, '').trim();
     const end = starts[i + 1] ?? lines.length;
-    const content = lines.slice(start, end).join('\n').trim();
+    const content = lines.slice(start + 1, end).join('\n').trim();
     return { title: rawTitle, content };
   }).filter(card => card.content.length > 35);
 }

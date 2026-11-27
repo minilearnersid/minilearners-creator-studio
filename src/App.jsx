@@ -190,7 +190,7 @@ function App() {
     <>
       <div className="studio-page-intro"><div className="eyebrow muted">CREATE SOMETHING WONDERFUL</div><h1>{studioTitle}</h1><p>{isStory ? 'Turn a little idea into a story worth remembering.' : 'Make playful, purposeful activities that help little minds grow.'}</p></div>
       <div className="mode-switch"><button className={mode === 'prompt' ? 'selected' : ''} onClick={() => {setMode('prompt');setGenerated(false)}}><WandSparkles size={16}/> Prompt Builder <span className="mode-tag">START HERE</span></button><button className={mode === 'ai' ? 'selected' : ''} onClick={() => {setMode('ai');setGenerated(false)}}><Sparkles size={16}/> AI Creator <span className="soon-tag">COMING NEXT</span></button></div>
-      {mode === 'ai' ? <div className="coming-panel"><div className="coming-icon"><Sparkles size={27}/></div><div className="eyebrow muted">IN DEVELOPMENT</div><h2>Your creative assistant is on its way.</h2><p>AI Creator will generate storybooks and worksheets directly inside your workspace. We're building the prompt foundation first so the results are structured, consistent and useful.</p><button className="secondary-btn" onClick={() => setMode('prompt')}>Explore Prompt Builder <ArrowRight size={15}/></button></div> : <div className="builder-layout"><section className="panel builder-panel"><div className="builder-heading"><div className={`builder-icon ${isStory ? 'sage' : 'gold'}`}>{isStory ? <BookOpen size={20}/> : <PencilRuler size={20}/>}</div><div><h2>Let's set the scene</h2><p>Tell us a little about what you want to create.</p></div></div>{isStory ? <div className="story-form-sections">
+      {mode === 'ai' ? <div className="coming-panel"><div className="coming-icon"><Sparkles size={27}/></div><div className="eyebrow muted">IN DEVELOPMENT</div><h2>Your creative assistant is on its way.</h2><p>AI Creator will generate storybooks and worksheets directly inside your workspace. We're building the prompt foundation first so the results are structured, consistent and useful.</p><button className="secondary-btn" onClick={() => setMode('prompt')}>Explore Prompt Builder <ArrowRight size={15}/></button></div> : <div className={`builder-layout ${isStory ? "storybook-builder-layout" : "worksheet-builder-layout"}`}><section className="panel builder-panel"><div className="builder-heading"><div className={`builder-icon ${isStory ? 'sage' : 'gold'}`}>{isStory ? <BookOpen size={20}/> : <PencilRuler size={20}/>}</div><div><h2>Let's set the scene</h2><p>Tell us a little about what you want to create.</p></div></div>{isStory ? <div className="story-form-sections">
           <details className="form-section" open><summary><span className="section-number">01</span><span><strong>Story foundation</strong><small>The idea, world, characters and heart of the story</small></span></summary><div className="section-fields">
             <label className="field full"><span>Story idea or working title</span><input value={form.title} onChange={e => update('title', e.target.value)} placeholder="e.g. Finnie and the Missing Butterfly"/></label>
             <label className="field"><span>Target age</span><select value={form.age} onChange={e => update('age', e.target.value)}><option>2–3 years</option><option>3–5 years</option><option>5–7 years</option><option>7–9 years</option></select></label>
@@ -258,6 +258,49 @@ function App() {
             .library-heading span { color:#788078; }
             .library-dropdown-field { max-width:100%; margin-top:12px; }
             .library-dropdown-field select { width:100%; }
+            /* Worksheet Studio readability pass: stronger, comfortably readable type */
+            .worksheet-builder-layout .builder-heading h2 { font-size:21px; }
+            .worksheet-builder-layout .builder-heading p { font-size:15px; line-height:1.55; }
+            .worksheet-builder-layout .prompt-library-panel .panel-heading h2 { font-size:20px; }
+            .worksheet-builder-layout .random-idea-copy p { font-size:14px; line-height:1.55; }
+            .worksheet-builder-layout .random-idea-copy .eyebrow { font-size:11px; }
+            .worksheet-builder-layout .random-idea-result strong { font-size:15px; }
+            .worksheet-builder-layout .random-idea-result span,
+            .worksheet-builder-layout .random-idea-result small { font-size:13px; line-height:1.5; }
+            .worksheet-builder-layout .library-heading strong { font-size:15px; }
+            .worksheet-builder-layout .library-heading span { font-size:13px; }
+            .worksheet-builder-layout .library-dropdown-field > span { font-size:14px; font-weight:800; color:#485442; }
+            .worksheet-builder-layout .library-dropdown-field select { font-size:14px; }
+            .worksheet-builder-layout .worksheet-brief-grid { margin-top:20px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child .eyebrow { font-size:12px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child h3 { font-size:21px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child .field-note,
+            .worksheet-builder-layout .worksheet-brief-grid .field-note { font-size:13px; font-weight:600; color:#596451; line-height:1.5; }
+            .worksheet-builder-layout .worksheet-brief-grid .field > span { font-size:14px; font-weight:800; color:#485442; }
+            .worksheet-builder-layout .worksheet-brief-grid input,
+            .worksheet-builder-layout .worksheet-brief-grid select,
+            .worksheet-builder-layout .worksheet-brief-grid textarea { font-size:14px; }
+            .worksheet-builder-layout .worksheet-brief-grid input::placeholder,
+            .worksheet-builder-layout .worksheet-brief-grid textarea::placeholder { font-size:14px; }
+            .worksheet-builder-layout .builder-footer > span { font-size:13px; }
+            .worksheet-builder-layout .builder-footer .primary-btn { font-size:14px; }
+            .worksheet-builder-layout .output-top .eyebrow { font-size:12px; }
+            .worksheet-builder-layout .output-status { font-size:11px; }
+            .worksheet-builder-layout .output-ready { font-size:15px; font-weight:700; }
+            .worksheet-builder-layout .output-description { font-size:14px; line-height:1.6; }
+            .worksheet-builder-layout .prompt-preview { font-size:13px; line-height:1.65; }
+            .worksheet-builder-layout .copy-btn { font-size:14px; }
+            .worksheet-builder-layout .empty-output h3 { font-size:18px; }
+            .worksheet-builder-layout .empty-output p { font-size:14px; line-height:1.6; }
+            .worksheet-builder-layout .output-hint { font-size:13px; }
+            @media(max-width:700px) {
+              .worksheet-builder-layout .worksheet-brief-grid .field > span,
+              .worksheet-builder-layout .worksheet-brief-grid input,
+              .worksheet-builder-layout .worksheet-brief-grid select,
+              .worksheet-builder-layout .worksheet-brief-grid textarea,
+              .worksheet-builder-layout .library-dropdown-field select { font-size:14px; }
+              .worksheet-builder-layout .prompt-preview { font-size:13px; }
+            }
             .worksheet-brief-grid { margin-top:20px; }
             .worksheet-brief-grid > .field.full:first-child .eyebrow { font-size:calc(1em + 1px); }
             .worksheet-brief-grid > .field.full:first-child h3 { font-size:calc(1.17em + 1px); }

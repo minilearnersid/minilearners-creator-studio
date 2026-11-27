@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import StorybookWorkflow from './StorybookWorkflow.jsx';
+import StorybookWorkflow from '../StorybookWorkflow.jsx';
+import WorksheetPackageReview from './WorksheetPackageReview.jsx';
 import {
   Sprout, LayoutDashboard, BookOpen, PencilRuler, FolderOpen, Settings,
   Sparkles, ArrowRight, Clock3, WandSparkles, Copy, Check, Menu, X,
@@ -16,12 +17,109 @@ function buildStorybookPrompt(f) {
   return `You are an expert children's picture-book author, early-years learning designer, art director and print-production specialist. Create a coherent, production-ready picture book using the complete brief below. Follow the selected specifications precisely. If a detail is missing, make a thoughtful age-appropriate choice and identify it as an assumption rather than silently changing supplied details.\n\nPROJECT BRIEF\nWorking title: ${f.title || '[Propose an original title]'}\nTarget age: ${f.age}\nStory length: ${pages} interior story pages, plus a separate cover (do not count the cover as a story page)\nTheme / genre: ${f.theme || '[Develop a suitable theme]'}\nMain character: ${f.character || '[Create a memorable protagonist]'}\nSupporting characters: ${f.supportingCharacters || '[Add only if the story needs them]'}\nSetting / world: ${f.setting || '[Create a vivid, coherent setting]'}\nMain problem / adventure: ${f.conflict || '[Create a simple, age-appropriate story problem]'}\nMoral / learning message: ${f.lesson || '[Choose a meaningful, non-preachy lesson]'}\nDesired ending: ${f.ending}\nBook format: ${f.storyFormat}\nNarration: ${f.narration}\nPlot structure: ${f.plot}\nEmotional tone: ${f.tone}\nVocabulary: ${f.vocabulary}\nReading experience: ${f.readingLevel}\nDialogue: ${f.dialogue}\n\nCHARACTER DESIGN AND CONTINUITY\nPhysical appearance: ${f.appearance || '[Define precise, repeatable physical traits]'}\nPersonality: ${f.personality || '[Define 3–5 consistent traits]'}\nClothing / accessories: ${f.clothing || '[Specify fixed clothing or state none]'}\nDistinctive features: ${f.distinctive || '[Specify memorable identifying details]'}\nRelationships: ${f.relationships || '[Establish clear relationships]'}\nConsistency level: ${f.consistency}\nCreate a master Character Bible with fixed species, age impression, proportions, face, eyes, fur/skin/hair colors, markings, clothing, accessories, silhouette, personality and mannerisms. Repeat the relevant fixed traits in every illustration prompt. Do not change a character's design, scale, clothing, markings or accessories between pages unless the manuscript explicitly describes a permanent change.\n\nBOOK AND PRINT SPECIFICATIONS\nTrim size: ${f.bookSize === 'Custom size (describe below)' ? (f.customSize || 'Custom dimensions not specified') : f.bookSize}\nOrientation: ${f.orientation}\nBleed: ${f.bleed}\nSafe margin: ${f.safeMargin}\nText placement: ${f.textPlacement}\nIllustration layout: ${f.illustrationPlacement}\nPage numbering: ${f.pageNumbering}\nPage number position: ${f.pageNumberPosition}\nReserved footer space: ${f.footerSpace}\nTreat the cover as a separate design, not one of the numbered story pages. ${f.pageNumbering.startsWith('Manual') ? `Reserve a clean, uncluttered footer zone (${f.footerSpace.toLowerCase()}) at ${f.pageNumberPosition.toLowerCase()} on every interior story page. Keep characters, important objects, text and focal action out of this reserved zone. Do not draw a page number, placeholder number, numeral, label or decorative mark in the zone.` : f.pageNumbering.startsWith('Automatic') ? 'Add page numbers later during final page layout/export, never inside generated illustrations. Keep a clear, consistent footer area on every interior story page.' : 'Do not include page numbers. No dedicated page-number footer is required.'} Keep all essential content inside the safe margin. Bleed and safe margins are production instructions and must be applied in final page layout/export, not merely assumed to be present in an image prompt.\n\nILLUSTRATION ART DIRECTION\nStyle: ${f.illustrationStyle}${f.customStyle ? `; additional direction: ${f.customStyle}` : ''}\nColor palette: ${f.palette}\nLighting / atmosphere: ${f.lighting}\nBackground detail: ${f.backgroundDetail}\nComposition: ${f.composition}\nNegative prompt: ${f.negativePrompt}\nUse one cohesive art direction across the cover and every story page. Vary camera distance and composition purposefully while maintaining the same visual world. Give characters expressive, readable emotions and child-friendly proportions. No unrequested text, letters, words, captions, speech bubbles, logos, watermarks, signatures or page numbers inside illustrations. If text is required in the book, provide it separately as manuscript copy, never as part of the image prompt.\n\nREQUIRED PRODUCTION PACKAGE\n1. TITLE OPTIONS AND CONCEPT\n   - Provide three distinct, age-appropriate title options.\n   - Recommend one title and explain briefly why it fits.\n   - Write a concise story concept / synopsis and identify the central emotional promise.\n2. STORY ARCHITECTURE\n   - Outline the opening, inciting moment, development, climax, resolution and emotional arc.\n   - Ensure the problem is understandable and solvable for the target age.\n3. CHARACTER BIBLE\n   - Provide a master visual description and personality profile for every recurring character.\n   - Include a concise character-lock paragraph to paste into every image-generation session.\n4. COMPLETE MANUSCRIPT\n   - Write exactly ${pages} numbered interior story pages.\n   - For each page provide: page purpose, exact final read-aloud text, and optional art-only notes.\n   - Keep sentence length, vocabulary, rhythm and emotional intensity suitable for ${f.age}.\n   - Create a clear page-turn reason and avoid repetitive scenes or abrupt transitions.\n   - The manuscript text must be the single source of truth for all later storyboard and illustration sections.\n5. PAGE-BY-PAGE STORYBOARD\n   - For every story page, repeat the exact manuscript text verbatim.\n   - Describe setting, characters present, action, emotion, composition, camera angle / distance, foreground, background and focal point.\n   - Specify where the text area and reserved page-number footer must remain clear.\n6. COVER ART DIRECTION AND PROMPT\n   - Create a separate cover concept and a detailed standalone illustration prompt.\n   - Include title placement guidance separately, but instruct the image model not to render any text.\n   - Do not count the cover as an interior story page.\n7. INDIVIDUAL ILLUSTRATION PROMPTS\n   - Provide exactly one independent, detailed prompt for each of the ${pages} story pages.\n   - Each prompt must restate the relevant character-lock details and describe only the scene for that page.\n   - Keep all visual details consistent with the Character Bible and storyboard.\n   - Include the selected art style, palette, lighting, composition, trim/orientation guidance, text-safe area and footer exclusion zone.\n   - No unrequested text or page numbers inside artwork.\n8. CONTINUITY AND QUALITY-CONTROL CHECKLIST\n   - Check character appearance, clothing, accessories, setting geography, time progression, props, emotional continuity, page-turn flow and story resolution.\n   - Check age suitability, grammar, spelling, readability, factual accuracy where relevant, and that the moral emerges naturally rather than through lecturing.\n   - Verify that every storyboard page matches its manuscript text exactly and every illustration prompt depicts the correct page.\n   - Verify cover is separate, page count is exact, and manual footer space is reserved on interior pages only.\n\nFINAL QUALITY RULES\n- Do not add extra story pages or silently change the requested page count.\n- Do not introduce a new character or important prop without a story reason.\n- Do not contradict the supplied brief.\n- Do not place unrequested text inside illustrations.\n- Make the output practical for a creator to take into illustration, layout and print production.\n- Use clear headings and consistent page labels throughout.`;
 }
 
+
+const worksheetPromptLibrary = [
+  { id: 'animal-counting', category: 'Counting & Numbers', title: 'My First Animal Counting Worksheet', age: '3–5 years', subject: 'Farm animals, numbers 1–10', activity: 'Counting', objective: 'Recognize numbers 1–10 and match each number to a quantity', difficulty: 'Beginner', pages: '2 pages', paper: 'A4 portrait' },
+  { id: 'alphabet-tracing', category: 'Alphabet & Literacy', title: 'My First Letter Tracing Pack', age: '3–5 years', subject: 'Uppercase letters A–E', activity: 'Tracing', objective: 'Recognize and trace uppercase letters A–E', difficulty: 'Beginner', pages: '5 pages', paper: 'A4 portrait' },
+  { id: 'dinosaur-match', category: 'Matching & Puzzles', title: 'Dinosaur Matching Fun', age: '3–5 years', subject: 'Dinosaurs, visual recognition and matching', activity: 'Matching', objective: 'Match identical dinosaur pictures and notice visual details', difficulty: 'Beginner', pages: '2 pages', paper: 'A4 portrait' },
+  { id: 'shape-colour', category: 'Shapes & Colours', title: 'Shapes and Colours Around Us', age: '3–5 years', subject: 'Basic shapes and primary colours', activity: 'Coloring', objective: 'Identify circles, squares, triangles and their colours', difficulty: 'Beginner', pages: '3 pages', paper: 'A4 portrait' },
+  { id: 'fine-motor', category: 'Fine Motor Skills', title: 'Little Hands Practice Pack', age: '3–5 years', subject: 'Pre-writing lines and pencil control', activity: 'Tracing', objective: 'Develop pencil control by tracing straight, curved and zigzag lines', difficulty: 'Beginner', pages: '4 pages', paper: 'A4 portrait' },
+  { id: 'life-cycle', category: 'Science & Nature', title: 'From Caterpillar to Butterfly', age: '5–7 years', subject: 'Butterfly life cycle', activity: 'Matching', objective: 'Sequence and identify the four stages of a butterfly life cycle', difficulty: 'Intermediate', pages: '3 pages', paper: 'A4 portrait' },
+  { id: 'bible-kindness', category: 'Bible Learning', title: 'The Good Samaritan: Kindness Activities', age: '5–7 years', subject: 'Bible story, kindness and helping others', activity: 'Mixed activity pack', objective: 'Recall key events and identify kind actions', difficulty: 'Beginner', pages: '4 pages', paper: 'A4 portrait' },
+  { id: 'seasonal', category: 'Seasonal Activities', title: 'A Little Christmas Activity Pack', age: '3–5 years', subject: 'Christmas, shapes, counting and patterns', activity: 'Mixed activity pack', objective: 'Practice early counting, visual matching and pattern recognition', difficulty: 'Beginner', pages: '5 pages', paper: 'A4 portrait' },
+];
+
+function buildWorksheetPrompt(f) {
+  return `You are an experienced early-years educator, curriculum designer and professional printable worksheet designer. Create a complete, accurate and production-ready worksheet package from the brief below. Follow every supplied setting. If a detail is missing, make a sensible age-appropriate choice and clearly identify it as an assumption.
+
+WORKSHEET PROJECT BRIEF
+Working title: ${f.title || '[Suggest a suitable title]'}
+Target age: ${f.age}
+Subject / theme: ${f.subject || '[Suggest a suitable subject or theme]'}
+Activity type: ${f.activity}
+Learning objective: ${f.objective || '[Define a clear, measurable learning objective]'}
+Difficulty: ${f.difficulty}
+Interior worksheet pages: ${f.worksheetPages === 'Custom number' ? (f.worksheetCustomPages || 'Custom number not specified') : (f.worksheetPages || 'Automatic')}
+Separate cover page: ${f.worksheetIncludeCover ? 'Yes, include one separate cover page in addition to the interior worksheet pages' : 'No'}
+Total designed pages: ${f.worksheetPages === 'Custom number' && f.worksheetCustomPages ? Number(f.worksheetCustomPages) + (f.worksheetIncludeCover ? 1 : 0) : (f.worksheetPages === 'Automatic' ? 'Determine an appropriate number' : parseInt(f.worksheetPages, 10) + (f.worksheetIncludeCover ? 1 : 0))}
+Paper size: ${f.paperSize || 'A4 portrait'}
+Visual theme / art direction: ${f.worksheetStyle || 'Cheerful, child-friendly and uncluttered'}
+
+REQUIRED SIX-STAGE WORKSHEET PRODUCTION PACKAGE
+
+STAGE 1: WORKSHEET CONCEPT
+- Provide three suitable worksheet title options and recommend one.
+- Summarise the concept, theme, target age, learning objective and expected learning outcome.
+- State the activity type and the skills children will practice.
+- Explain briefly why the activity is appropriate for the selected age.
+
+STAGE 2: LEARNING ARCHITECTURE
+- Break the learning objective into clear, age-appropriate skills.
+- Define the activity sequence and progression.
+- Set the difficulty and any prerequisite skills.
+- Ensure the number of activities and cognitive demands are suitable for the target age.
+- Avoid unnecessary complexity, excessive instructions or tasks requiring skills beyond the selected age.
+
+STAGE 3: COMPLETE WORKSHEET CONTENT
+- Write the exact student-facing title, instructions, questions, labels, tracing content and tasks.
+- Organise the content page by page.
+- Specify the exact number of items, objects, choices or responses required for every activity.
+- Ensure every task has a clear, unambiguous correct answer where an answer is expected.
+- Do not use placeholder tasks such as “add some animals” or “draw a few shapes”. Supply the actual content.
+- Keep instructions short, concrete and understandable for the target age.
+- Do not claim that dotted tracing artwork or illustrations have been created. Describe exactly what must be drawn or typeset.
+
+STAGE 4: PAGE-BY-PAGE LAYOUT AND DESIGN
+- Give a separate layout plan for every page.
+- Specify the placement of headings, instructions, activity elements, illustrations, response areas and page numbers if needed.
+- Include generous writing, colouring, cutting or tracing space appropriate to the activity.
+- Specify illustration subjects and exact quantities wherever counting is involved.
+- Include paper size, orientation, safe margins and print-friendly background guidance.
+- Keep important content away from trim edges and avoid overcrowded pages.
+- Provide a separate, self-contained illustration prompt for every interior worksheet page when illustrations are needed. Label each prompt clearly as 'Page 1: [page title]', 'Page 2: [page title]' and so on.
+- If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone cover illustration prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
+- COVER DESIGN RULES: Design a simple, attractive front cover, not an inventory of the worksheet contents. Use only 3–5 representative characters or objects from the theme. Select a small visually appealing variety. Never reproduce every animal, object, activity, item quantity or learning example from the interior pages. Do not arrange subjects in numbered groups, counting grids, matching rows or catalogues. Create one cohesive scene with a clear visual focal point. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. The cover should look like a professionally illustrated children's workbook cover, not an interior activity page.
+- The cover prompt must be independent of the interior illustration prompts. Do not copy the interior page quantity requirements into the cover prompt.
+- Create ONE complete, finished front-cover design that combines the illustration and its typography in the same image. Do not produce a text-free illustration as the default and do not request a separate typography-finishing deliverable.
+- Include the exact approved worksheet title, one short appealing subtitle that accurately describes the activity, and the target age label formatted as 'Ages [minimum]–[maximum]' directly inside the cover image prompt. Use the working title from the project brief unless Stage 1 explicitly recommends and approves a different title; keep the chosen title consistent everywhere.
+- Give precise typography direction inside the cover prompt: placement, font characteristics, clear size hierarchy, alignment, text colours with strong contrast, and visual balance. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. Keep all text readable and do not cover faces or important parts of the main illustration.
+- Render the wording accurately and spell every text element exactly as supplied. Do not add extra words, decorative lettering, labels, banners, logos or watermarks. If the image model cannot reliably render text, identify that limitation in the quality-control notes and provide the exact wording and layout as a fallback, but still make the complete integrated cover the primary deliverable.
+- In Stage 4, put the complete cover prompt under its own clearly labelled heading, such as 'Cover: [title]'. The prompt must describe both artwork and typography as one finished composition.
+- In Stage 4, put each illustration prompt under its own clearly labelled heading. Keep each prompt text together in one paragraph or clearly delimited block, and do not mix layout notes or copy-button instructions into the prompt itself.
+
+STAGE 5: ANSWER KEY AND TEACHER NOTES
+- Provide a complete answer key for every activity that has a correct answer.
+- Match answer labels and numbering exactly to the worksheet content.
+- For open-ended creative activities, state that answers may vary.
+- Include concise teacher or parent guidance only where it helps the activity.
+
+STAGE 6: FINAL QUALITY CONTROL
+- Verify age suitability, spelling, grammar, clarity and learning-objective alignment.
+- Check every count, sequence, question, answer and illustration quantity.
+- Check that all answer-key entries match the actual worksheet tasks.
+- Check the exact number of interior pages separately from any optional cover page. Verify the cover is additional and is not counted as an activity page. Check page size, margins, writing space and print readability.
+- When a separate cover is requested, verify that Stage 4 includes one standalone cover prompt for a complete integrated cover design, with the exact title, subtitle and age label rendered as part of the artwork, plus clear placement, font direction, alignment and colour guidance. Do not treat a text-free illustration plus separate typography notes as the default cover deliverable.
+- Identify any assumptions or items that need a human review before publication.
+- End with a concise pass / needs-review checklist. Never mark a check as passed unless it has actually been verified.
+
+GLOBAL QUALITY RULES
+- Produce actual worksheet content, not merely a description of a worksheet.
+- Never invent ambiguous answers or inconsistent quantities.
+- Keep the visual direction cohesive across all pages.
+- Use developmentally appropriate activities and simple language.
+- Keep the final package organised under the six stage headings above.
+- Do not claim that a finished PDF or illustrated worksheet file exists. This deliverable is the complete content and production specification for creating it.
+- When a separate cover is requested, keep its artwork simple and selective: 3–5 representative theme elements maximum, never every interior character or quantity. Make the complete cover, including title, subtitle and age label, one integrated design.`;
+}
+
 function App() {
   const [page, setPage] = useState('dashboard');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mode, setMode] = useState('prompt');
   const [generated, setGenerated] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [randomIdea, setRandomIdea] = useState(null);
+  const [selectedLibraryIdea, setSelectedLibraryIdea] = useState('');
   const [projects] = useState(initialProjects);
   const [form, setForm] = useState({
     title: '', age: '3–5 years', theme: '', character: '', lesson: '', pages: '10 story pages',
@@ -32,7 +130,7 @@ function App() {
     bookSize: '20 × 20 cm square', customSize: '', orientation: 'Square', textPlacement: 'Text below illustration', illustrationPlacement: 'One full-page illustration per story page',
     bleed: '3 mm', safeMargin: '10 mm', pageNumbering: 'Manual (leave blank space)', pageNumberPosition: 'Bottom center', footerSpace: 'Small',
     illustrationStyle: 'Soft watercolor', palette: 'Warm natural woodland palette', lighting: 'Soft, gentle natural lighting', consistency: 'Character locked', backgroundDetail: 'Moderate detail, uncluttered', composition: 'Clear focal point with child-friendly framing', customStyle: '', negativePrompt: 'No extra characters, no inconsistent clothing, no distorted anatomy, no watermarks, no logos, no unrequested lettering or text.',
-    subject: '', activity: 'Tracing', objective: '', difficulty: 'Beginner'
+    subject: '', activity: 'Tracing', objective: '', difficulty: 'Beginner', worksheetPages: 'Automatic', worksheetCustomPages: '', worksheetIncludeCover: false, paperSize: 'A4 portrait', worksheetStyle: 'Cheerful, child-friendly and uncluttered'
   });
 
   const isStory = page === 'storybook';
@@ -40,10 +138,21 @@ function App() {
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
   const openStudio = (which) => { setPage(which); setMode('prompt'); setGenerated(false); setMobileOpen(false); };
   const go = (destination) => { setPage(destination); setMobileOpen(false); };
+  const useWorksheetIdea = (idea) => {
+    setSelectedLibraryIdea(idea.id);
+    setForm(current => ({ ...current, title: idea.title, age: idea.age, subject: idea.subject, activity: idea.activity, objective: idea.objective, difficulty: idea.difficulty, worksheetPages: idea.pages, paperSize: idea.paper }));
+    setRandomIdea(idea);
+    setGenerated(false);
+  };
+  const suggestRandomWorksheetIdea = () => {
+    const available = worksheetPromptLibrary.filter(idea => idea.id !== randomIdea?.id);
+    const next = available[Math.floor(Math.random() * available.length)];
+    setRandomIdea(next);
+  };
 
   const promptText = isStory
     ? buildStorybookPrompt(form)
-    : `You are an experienced early-years educator and printable learning-resource designer. Create a classroom-ready worksheet activity based on this brief.\n\nWORKING TITLE: ${form.title || '[Create a suitable title]'}\nTARGET AGE: ${form.age}\nSUBJECT / THEME: ${form.subject || '[Choose a subject]'}\nACTIVITY TYPE: ${form.activity}\nLEARNING OBJECTIVE: ${form.objective || '[Define a measurable learning objective]'}\nDIFFICULTY: ${form.difficulty}\n\nDELIVERABLES:\n1. A clear worksheet title and learning objective.\n2. Student-facing instructions written for the selected age.\n3. Complete activity content with exact questions or tasks.\n4. Layout and illustration guidance for a printable page.\n5. An answer key where applicable.\n6. A quality-control checklist for age suitability, clarity and correctness.\n\nUse simple instructions, generous writing space and developmentally appropriate activities. Do not invent ambiguous answers.`;
+    : buildWorksheetPrompt(form);
 
   const generatePrompt = () => { setGenerated(true); setCopied(false); };
   const copyPrompt = async () => {
@@ -95,7 +204,7 @@ function App() {
     <>
       <div className="studio-page-intro"><div className="eyebrow muted">CREATE SOMETHING WONDERFUL</div><h1>{studioTitle}</h1><p>{isStory ? 'Turn a little idea into a story worth remembering.' : 'Make playful, purposeful activities that help little minds grow.'}</p></div>
       <div className="mode-switch"><button className={mode === 'prompt' ? 'selected' : ''} onClick={() => {setMode('prompt');setGenerated(false)}}><WandSparkles size={16}/> Prompt Builder <span className="mode-tag">START HERE</span></button><button className={mode === 'ai' ? 'selected' : ''} onClick={() => {setMode('ai');setGenerated(false)}}><Sparkles size={16}/> AI Creator <span className="soon-tag">COMING NEXT</span></button></div>
-      {mode === 'ai' ? <div className="coming-panel"><div className="coming-icon"><Sparkles size={27}/></div><div className="eyebrow muted">IN DEVELOPMENT</div><h2>Your creative assistant is on its way.</h2><p>AI Creator will generate storybooks and worksheets directly inside your workspace. We're building the prompt foundation first so the results are structured, consistent and useful.</p><button className="secondary-btn" onClick={() => setMode('prompt')}>Explore Prompt Builder <ArrowRight size={15}/></button></div> : <div className="builder-layout"><section className="panel builder-panel"><div className="builder-heading"><div className={`builder-icon ${isStory ? 'sage' : 'gold'}`}>{isStory ? <BookOpen size={20}/> : <PencilRuler size={20}/>}</div><div><h2>Let's set the scene</h2><p>Tell us a little about what you want to create.</p></div></div>{isStory ? <div className="story-form-sections">
+      {mode === 'ai' ? <div className="coming-panel"><div className="coming-icon"><Sparkles size={27}/></div><div className="eyebrow muted">IN DEVELOPMENT</div><h2>Your creative assistant is on its way.</h2><p>AI Creator will generate storybooks and worksheets directly inside your workspace. We're building the prompt foundation first so the results are structured, consistent and useful.</p><button className="secondary-btn" onClick={() => setMode('prompt')}>Explore Prompt Builder <ArrowRight size={15}/></button></div> : <div className={`builder-layout ${isStory ? "storybook-builder-layout" : "worksheet-builder-layout"}`}><section className="panel builder-panel"><div className="builder-heading"><div className={`builder-icon ${isStory ? 'sage' : 'gold'}`}>{isStory ? <BookOpen size={20}/> : <PencilRuler size={20}/>}</div><div><h2>Let's set the scene</h2><p>Tell us a little about what you want to create.</p></div></div>{isStory ? <div className="story-form-sections">
           <details className="form-section" open><summary><span className="section-number">01</span><span><strong>Story foundation</strong><small>The idea, world, characters and heart of the story</small></span></summary><div className="section-fields">
             <label className="field full"><span>Story idea or working title</span><input value={form.title} onChange={e => update('title', e.target.value)} placeholder="e.g. Finnie and the Missing Butterfly"/></label>
             <label className="field"><span>Target age</span><select value={form.age} onChange={e => update('age', e.target.value)}><option>2–3 years</option><option>3–5 years</option><option>5–7 years</option><option>7–9 years</option></select></label>
@@ -149,7 +258,135 @@ function App() {
           <details className="form-section"><summary><span className="section-number">06</span><span><strong>Production deliverables</strong><small>Choose a complete, consistent book-production package</small></span></summary><div className="deliverable-list">
             {['Three title options and story concept','Story architecture: beginning, development, climax and resolution','Character Bible with master visual descriptions','Complete manuscript with exact page-by-page text','Storyboard for every page: composition, action, setting and emotion','Separate detailed cover illustration prompt','One independent illustration prompt for every story page','Reusable character-lock instructions and negative prompt','Continuity, age-suitability and production quality-control checklist'].map(item => <div className="deliverable-item" key={item}><span className="deliverable-check">✓</span><span>{item}</span></div>)}
           </div></details>
-        </div> : <div className="form-grid"><label className="field full"><span>Worksheet title or topic</span><input value={form.title} onChange={e => update('title', e.target.value)} placeholder="e.g. My First Animal Counting Worksheet"/></label><label className="field"><span>Target age</span><select value={form.age} onChange={e => update('age', e.target.value)}><option>2–3 years</option><option>3–5 years</option><option>5–7 years</option><option>7–9 years</option></select></label><label className="field"><span>Difficulty</span><select value={form.difficulty} onChange={e => update('difficulty', e.target.value)}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label><label className="field full"><span>Subject or theme</span><input value={form.subject} onChange={e => update('subject', e.target.value)} placeholder="e.g. Farm animals, numbers 1–10"/></label><label className="field"><span>Activity type</span><select value={form.activity} onChange={e => update('activity', e.target.value)}>{['Tracing','Matching','Counting','Coloring','Cut and paste','Sorting','Mazes','Mixed activity pack'].map(v => <option key={v}>{v}</option>)}</select></label><label className="field"><span>Learning objective</span><input value={form.objective} onChange={e => update('objective', e.target.value)} placeholder="e.g. Recognize numbers 1–10"/></label></div>}<div className="builder-footer"><span><Lightbulb size={15}/> You can refine the prompt before using it.</span><button className="primary-btn" onClick={generatePrompt}>Generate prompt <Sparkles size={15}/></button></div></section><aside className="panel output-panel"><div className="output-top"><div className="eyebrow muted">YOUR PROMPT</div><div className="output-status"><span className="status-dot"/> READY WHEN YOU ARE</div></div>{generated ? <><div className="output-ready"><Check size={17}/> Your prompt is ready</div><p className="output-description">Copy this structured brief and paste it into your preferred AI tool.</p><pre className="prompt-preview">{promptText}</pre><button className="primary-btn copy-btn" onClick={copyPrompt}>{copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? 'Copied!' : 'Copy full prompt'}</button></> : <div className="empty-output"><div className="empty-icon"><FileText size={26}/></div><h3>Your prompt will appear here</h3><p>Complete the brief, then select Generate prompt. We'll turn your ideas into a clear, detailed creative brief.</p><div className="output-hint"><Sparkles size={15}/> Thoughtfully structured for better results</div></div>}</aside></div>}
+        </div> : <>
+          <style>{`
+            .prompt-library-panel { margin-bottom: 18px; padding: 22px; }
+            .random-idea-card { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px; margin:16px 0; border:1px solid #dfe8dc; border-radius:14px; background:#f6f8f3; }
+            .random-idea-copy { min-width:0; flex:1; }
+            .random-idea-copy h3 { margin:6px 0; font-size:calc(1.17em - 1px); }
+            .random-idea-copy p { margin:0; color:#68736a; }
+            .random-idea-result { display:flex; flex-direction:column; gap:4px; margin-top:12px; padding:12px; border-radius:10px; background:#fff; border:1px solid #e3e9df; }
+            .random-idea-result span,.random-idea-result small { color:#68736a; }
+            .random-idea-actions { display:flex; flex-direction:column; align-items:stretch; gap:8px; flex-shrink:0; }
+            .library-heading { display:flex; justify-content:space-between; gap:12px; margin:18px 0 10px; }
+            .library-heading span { color:#788078; }
+            .library-dropdown-field { max-width:100%; margin-top:12px; }
+            .library-dropdown-field select { width:100%; }
+            /* Worksheet Studio readability pass: stronger, comfortably readable type */
+            .worksheet-builder-layout .builder-heading h2 { font-size:21px; }
+            .worksheet-builder-layout .builder-heading p { font-size:15px; line-height:1.55; }
+            .worksheet-builder-layout .prompt-library-panel .panel-heading h2 { font-size:20px; }
+            .worksheet-builder-layout .random-idea-copy p { font-size:14px; line-height:1.55; }
+            .worksheet-builder-layout .random-idea-copy .eyebrow { font-size:11px; }
+            .worksheet-builder-layout .random-idea-result strong { font-size:15px; }
+            .worksheet-builder-layout .random-idea-result span,
+            .worksheet-builder-layout .random-idea-result small { font-size:13px; line-height:1.5; }
+            .worksheet-builder-layout .library-heading strong { font-size:15px; }
+            .worksheet-builder-layout .library-heading span { font-size:13px; }
+            .worksheet-builder-layout .library-dropdown-field > span { font-size:14px; font-weight:800; color:#485442; }
+            .worksheet-builder-layout .library-dropdown-field select { font-size:14px; }
+            .worksheet-builder-layout .worksheet-brief-grid { margin-top:20px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child .eyebrow { font-size:12px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child h3 { font-size:21px; }
+            .worksheet-builder-layout .worksheet-brief-grid > .field.full:first-child .field-note,
+            .worksheet-builder-layout .worksheet-brief-grid .field-note { font-size:13px; font-weight:600; color:#596451; line-height:1.5; }
+            .worksheet-builder-layout .worksheet-brief-grid .field > span { font-size:14px; font-weight:800; color:#485442; }
+            .worksheet-builder-layout .worksheet-brief-grid input,
+            .worksheet-builder-layout .worksheet-brief-grid select,
+            .worksheet-builder-layout .worksheet-brief-grid textarea { font-size:14px; }
+            .worksheet-builder-layout .worksheet-brief-grid input::placeholder,
+            .worksheet-builder-layout .worksheet-brief-grid textarea::placeholder { font-size:14px; }
+            .worksheet-builder-layout .builder-footer > span { font-size:13px; }
+            .worksheet-builder-layout .builder-footer .primary-btn { font-size:14px; }
+            .worksheet-builder-layout .output-top .eyebrow { font-size:12px; }
+            .worksheet-builder-layout .output-status { font-size:11px; }
+            .worksheet-builder-layout .output-ready { font-size:15px; font-weight:700; }
+            .worksheet-builder-layout .output-description { font-size:14px; line-height:1.6; }
+            .worksheet-builder-layout .prompt-preview { font-size:13px; line-height:1.65; }
+            .worksheet-builder-layout .copy-btn { font-size:14px; }
+            .worksheet-builder-layout .empty-output h3 { font-size:18px; }
+            .worksheet-builder-layout .empty-output p { font-size:14px; line-height:1.6; }
+            .worksheet-builder-layout .output-hint { font-size:13px; }
+            @media(max-width:700px) {
+              .worksheet-builder-layout .worksheet-brief-grid .field > span,
+              .worksheet-builder-layout .worksheet-brief-grid input,
+              .worksheet-builder-layout .worksheet-brief-grid select,
+              .worksheet-builder-layout .worksheet-brief-grid textarea,
+              .worksheet-builder-layout .library-dropdown-field select { font-size:14px; }
+              .worksheet-builder-layout .prompt-preview { font-size:13px; }
+            }
+            .worksheet-brief-grid { margin-top:20px; }
+            .worksheet-brief-grid > .field.full:first-child .eyebrow { font-size:calc(1em + 1px); }
+            .worksheet-brief-grid > .field.full:first-child h3 { font-size:calc(1.17em + 1px); }
+            .worksheet-brief-grid .field > span {
+              font-size:calc(1em + 1px);
+              font-weight:800;
+              color:#485442;
+            }
+            .worksheet-brief-grid > .field.full:first-child .field-note,
+            .worksheet-brief-grid .field-note {
+              font-size:calc(0.9em + 1px);
+              font-weight:600;
+              color:#596451;
+            }
+            .worksheet-brief-grid input,
+            .worksheet-brief-grid select,
+            .worksheet-brief-grid textarea { font-size:calc(1em + 1px); }
+            .worksheet-brief-grid input::placeholder,
+            .worksheet-brief-grid textarea::placeholder { font-size:calc(1em + 1px); }
+            .builder-footer > span { font-size:calc(0.9em + 1px); }
+            .worksheet-brief-grid h3 { margin:5px 0 0; }
+            @media(max-width:700px) {
+              .random-idea-card { align-items:stretch; flex-direction:column; }
+              .random-idea-actions { flex-direction:row; flex-wrap:wrap; }
+              .library-heading { flex-direction:column; gap:3px; }
+            }
+          `}</style>
+          <section className="panel prompt-library-panel">
+            <div className="panel-heading">
+              <div><div className="eyebrow muted">START WITH AN IDEA</div><h2>Worksheet Prompt Library</h2></div>
+              <span className="mode-tag">READY-MADE IDEAS</span>
+            </div>
+            <div className="random-idea-card">
+              <div className="random-idea-copy"><div className="eyebrow muted">NEED A LITTLE INSPIRATION?</div><h3>Random Worksheet Idea</h3><p>Let MiniLearners suggest an educational activity. You can try another idea or use it to fill in your brief.</p>
+                {randomIdea && <div className="random-idea-result"><strong>{randomIdea.title}</strong><span>{randomIdea.category} · {randomIdea.age} · {randomIdea.activity}</span><small>{randomIdea.objective}</small></div>}
+              </div>
+              <div className="random-idea-actions"><button className="secondary-btn" type="button" onClick={suggestRandomWorksheetIdea}><WandSparkles size={15}/> {randomIdea ? 'Try another idea' : 'Surprise me!'}</button>{randomIdea && <button className="text-btn" type="button" onClick={() => useWorksheetIdea(randomIdea)}>Use this idea <ArrowRight size={14}/></button>}</div>
+            </div>
+            <div className="library-heading"><strong>Browse ready-made prompts</strong><span>Select a template to pre-fill your brief</span></div>
+            <label className="field library-dropdown-field">
+              <span>Choose a worksheet prompt</span>
+              <select value={selectedLibraryIdea} onChange={e => {
+                const idea = worksheetPromptLibrary.find(item => item.id === e.target.value);
+                if (idea) useWorksheetIdea(idea);
+              }}>
+                <option value="">Select a ready-made prompt...</option>
+                <optgroup label="Counting & Numbers"><option value="animal-counting">My First Animal Counting Worksheet</option></optgroup>
+                <optgroup label="Alphabet & Literacy"><option value="alphabet-tracing">My First Letter Tracing Pack</option></optgroup>
+                <optgroup label="Matching & Puzzles"><option value="dinosaur-match">Dinosaur Matching Fun</option></optgroup>
+                <optgroup label="Shapes & Colours"><option value="shape-colour">Shapes and Colours Around Us</option></optgroup>
+                <optgroup label="Fine Motor Skills"><option value="fine-motor">Little Hands Practice Pack</option></optgroup>
+                <optgroup label="Science & Nature"><option value="life-cycle">From Caterpillar to Butterfly</option></optgroup>
+                <optgroup label="Bible Learning"><option value="bible-kindness">The Good Samaritan: Kindness Activities</option></optgroup>
+                <optgroup label="Seasonal Activities"><option value="seasonal">A Little Christmas Activity Pack</option></optgroup>
+              </select>
+            </label>
+          </section>
+          <div className="form-grid worksheet-brief-grid">
+            <div className="field full"><div className="eyebrow muted">CUSTOMISE YOUR PROJECT</div><h3>Worksheet brief</h3><p className="field-note">Start with a library idea or create your own. You can edit every field.</p></div>
+            <label className="field full"><span>Worksheet title or topic</span><input value={form.title} onChange={e => update('title', e.target.value)} placeholder="e.g. My First Animal Counting Worksheet"/></label>
+            <label className="field"><span>Target age</span><select value={form.age} onChange={e => update('age', e.target.value)}><option>2–3 years</option><option>3–5 years</option><option>5–7 years</option><option>7–9 years</option><option>9–12 years</option></select></label>
+            <label className="field"><span>Difficulty</span><select value={form.difficulty} onChange={e => update('difficulty', e.target.value)}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+            <label className="field full"><span>Subject or theme</span><input value={form.subject} onChange={e => update('subject', e.target.value)} placeholder="e.g. Farm animals, numbers 1–10"/></label>
+            <label className="field"><span>Activity type</span><select value={form.activity} onChange={e => update('activity', e.target.value)}>{['Tracing','Matching','Counting','Coloring','Cut and paste','Sorting','Mazes','Patterns','Phonics','Writing','Mixed activity pack'].map(v => <option key={v}>{v}</option>)}</select></label>
+            <label className="field"><span>Learning objective</span><input value={form.objective} onChange={e => update('objective', e.target.value)} placeholder="e.g. Recognize and trace numbers 1–10"/></label>
+            <label className="field"><span>Number of interior pages</span><select value={form.worksheetPages} onChange={e => update('worksheetPages', e.target.value)}><option>Automatic</option><option>1 page</option><option>2 pages</option><option>3 pages</option><option>4 pages</option><option>5 pages</option><option>6 pages</option><option>10 pages</option><option value="Custom number">Custom number</option></select></label>
+            {form.worksheetPages === 'Custom number' && <label className="field"><span>Enter number of interior pages</span><input type="number" min="1" max="100" step="1" value={form.worksheetCustomPages} onChange={e => update('worksheetCustomPages', e.target.value)} placeholder="e.g. 12"/></label>}
+            <label className="field full worksheet-cover-option"><span className="worksheet-cover-label"><input type="checkbox" checked={form.worksheetIncludeCover} onChange={e => update('worksheetIncludeCover', e.target.checked)}/> Include a separate cover page</span><small>The cover is additional to your selected number of interior worksheet pages.</small></label>
+            <label className="field"><span>Paper size</span><select value={form.paperSize} onChange={e => update('paperSize', e.target.value)}><option>A4 portrait</option><option>A4 landscape</option><option>A5 portrait</option><option>US Letter portrait</option><option>US Letter landscape</option></select></label>
+            <label className="field full"><span>Visual theme or art direction</span><input value={form.worksheetStyle} onChange={e => update('worksheetStyle', e.target.value)} placeholder="e.g. Soft pastel farm illustrations, clean white background"/></label>
+          </div>
+        </>}<div className="builder-footer"><span><Lightbulb size={15}/> You can refine the prompt before using it.</span><button className="primary-btn" onClick={generatePrompt}>{isStory ? "Generate prompt" : "Quick Create"} <Sparkles size={15}/></button></div></section><aside className="panel output-panel"><div className="output-top"><div className="eyebrow muted">YOUR PROMPT</div><div className="output-status"><span className="status-dot"/> READY WHEN YOU ARE</div></div>{generated ? <><div className="output-ready"><Check size={17}/> Your prompt is ready</div><p className="output-description">{isStory ? "Copy this structured brief and paste it into your preferred AI tool." : "Your six-stage worksheet production prompt is ready. Copy it into your preferred AI tool to generate the complete package."}</p><pre className="prompt-preview">{promptText}</pre><button className="primary-btn copy-btn" onClick={copyPrompt}>{copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? 'Copied!' : 'Copy full prompt'}</button></> : <div className="empty-output"><div className="empty-icon"><FileText size={26}/></div><h3>Your prompt will appear here</h3><p>Complete the brief, then select {isStory ? 'Generate prompt' : 'Quick Create'}. We'll prepare a structured production prompt for you.</p><div className="output-hint"><Sparkles size={15}/> Thoughtfully structured for better results</div></div>}</aside></div>}{!isStory && <WorksheetPackageReview/>}
     </>
   );
 

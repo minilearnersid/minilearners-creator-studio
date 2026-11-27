@@ -1,0 +1,302 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Check, CheckCircle2, ChevronDown, ClipboardCheck, Copy, Sparkles, WandSparkles } from 'lucide-react';
+import './StorybookWorkflow.css';
+
+const STORAGE_KEY = 'mlcs-storybook-studio-v22';
+const defaults = {
+  title: '', age: '3–5 years', pages: '10 story pages', customPages: '20', theme: '', customTheme: '', character: '', characterType: 'Friendly animal', customCharacter: '', supportingCharacters: '', setting: '', conflict: '', lesson: '', customLesson: '', ending: 'Hopeful and heartwarming',
+  storyFormat: 'Standalone story', narration: 'Third-person narrator', plot: 'Problem-solving adventure', tone: 'Warm and heartwarming', vocabulary: 'Simple, familiar vocabulary', readingLevel: 'Read-aloud', dialogue: 'Balanced narration and dialogue',
+  appearance: '', personality: '', clothing: '', distinctive: '', relationships: '', consistency: 'Character locked',
+  bookSize: '20 × 20 cm square', customSize: '', orientation: 'Square', bleed: '3 mm', safeMargin: '10 mm', textPlacement: 'Text below illustration', illustrationPlacement: 'Illustration panel above text area', pageNumbering: 'Automatic numbering', pageNumberPosition: 'Bottom right', footerSpace: 'Small',
+  illustrationStyle: 'Soft watercolor', palette: 'Warm natural woodland palette', lighting: 'Soft, gentle natural lighting', backgroundDetail: 'Moderate detail, uncluttered', composition: 'Clear focal point with child-friendly framing', customStyle: '', negativePrompt: 'No extra characters, no inconsistent clothing, no distorted anatomy, no watermarks, no logos, no unrequested lettering or text.'
+};
+function buildBrief(f) {
+  const pages = f.pages === 'Custom length' ? (f.customPages || '20') : (f.pages || '10 story pages').replace(' story pages', '');
+  return `PROJECT BRIEF\nWorking title: ${f.title || '[Not supplied: propose options]'}\nTarget age: ${f.age}\nStory length: ${pages} interior story pages, plus a separate cover\nTheme / genre: ${f.theme === 'Other (custom)' ? (f.customTheme || '[Custom theme not supplied]') : (f.theme || '[Develop a suitable theme and identify it as an assumption]')}\nMain character: ${f.characterType === 'Other (custom)' ? (f.customCharacter || '[Custom character not supplied]') : f.characterType}${f.character ? `; creator's character idea: ${f.character}` : ''}\nSupporting characters: ${f.supportingCharacters || 'Add only if the story needs them'}\nSetting / world: ${f.setting || '[Create a vivid, coherent setting and identify it as an assumption]'}\nMain problem / adventure: ${f.conflict || '[Create a simple, age-appropriate solvable problem and identify it as an assumption]'}\nMoral / learning message: ${f.lesson === 'Other (custom)' ? (f.customLesson || '[Custom learning message not supplied]') : (f.lesson || '[Choose a meaningful, non-preachy lesson and identify it as an assumption]')}\nDesired ending: ${f.ending}\nBook format: ${f.storyFormat}\nNarration: ${f.narration}\nPlot structure: ${f.plot}\nEmotional tone: ${f.tone}\nVocabulary: ${f.vocabulary}\nReading experience: ${f.readingLevel}\nDialogue: ${f.dialogue}\n\nCHARACTER DESIGN AND CONTINUITY\nPhysical appearance: ${f.appearance || '[Define precise, repeatable physical traits]'}\nPersonality: ${f.personality || '[Define 3–5 consistent traits]'}\nClothing / accessories: ${f.clothing || '[Specify fixed clothing or state none]'}\nDistinctive features: ${f.distinctive || '[Specify memorable identifying details]'}\nRelationships: ${f.relationships || '[Establish clear relationships]'}\nConsistency level: ${f.consistency}\nPreserve all customer-supplied names, spellings, traits and choices exactly. Never rename a character or silently change a locked decision.\n\nBOOK AND PRINT SPECIFICATIONS\nTrim size: ${f.bookSize === 'Custom size (describe below)' ? (f.customSize || 'Custom dimensions not yet supplied') : f.bookSize}\nOrientation: ${f.orientation}\nBleed: ${f.bleed}\nSafe margin: ${f.safeMargin}\nText placement: ${f.textPlacement}\nIllustration layout: ${f.illustrationPlacement}\nPage numbering: ${f.pageNumbering}\nPage number position: ${f.pageNumberPosition}\nReserved footer space: ${f.footerSpace}\nTreat the cover as separate, not as an interior story page. ${f.pageNumbering.startsWith('Automatic') ? `Include the correct printed page number visibly in the finished-page design at ${f.pageNumberPosition.toLowerCase()}. Keep characters, focal action and important objects out of the number area. The page number must be rendered as part of the complete page, not added later.` : 'Do not include page numbers or a dedicated numbering footer.'}\nBleed and safe margins must be applied in final layout/export, not merely assumed to exist in image prompts.\n\nILLUSTRATION ART DIRECTION\nStyle: ${f.illustrationStyle}${f.customStyle ? `; additional direction: ${f.customStyle}` : ''}\nColor palette: ${f.palette}\nLighting / atmosphere: ${f.lighting}\nBackground detail: ${f.backgroundDetail}\nComposition: ${f.composition}\nNegative prompt: ${f.negativePrompt}\nUse one cohesive art direction across cover and all interior pages. Interior finished-page artwork must NEVER include a page title, heading, subtitle, label or decorative title banner. The lower text panel must contain ONLY the exact approved manuscript text and correct page number supplied in the page-specific prompt. Do not add any other text, captions, speech bubbles, logos, watermarks or signatures.`;
+}
+function Field({ label, value, onChange, options, placeholder, multiline = false, hint }) {
+  return <label className="ml-field"><span>{label}</span>{options ? <select value={value} onChange={e => onChange(e.target.value)}>{options.map(v => <option key={v}>{v}</option>)}</select> : multiline ? <textarea rows="2" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}/> : <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />}{hint && <small>{hint}</small>}</label>;
+}
+function Section({ number, title, subtitle, children, open = false }) {
+  return <details className="ml-form-section" open={open}><summary><span className="ml-section-number">{number}</span><span className="ml-section-title"><strong>{title}</strong><small>{subtitle}</small></span><ChevronDown size={17}/></summary><div className="ml-section-fields">{children}</div></details>;
+}
+
+const QUICK_STAGE_LABELS = [
+  'Story Concept & Titles',
+  'Story Architecture & Character Bible',
+  'Complete Manuscript',
+  'Page-by-Page Storyboard',
+  'Cover & Illustration Prompts',
+  'Final Quality Control'
+];
+
+function splitQuickPackage(text) {
+  if (!text?.trim()) return [];
+  const heading = /(?:^|\n)\s{0,3}(?:#{1,6}\s*)?STAGE\s*([1-6])\s*(?:[—–:-]\s*|:\s*)([^\n]*)/gi;
+  const matches = [...text.matchAll(heading)];
+  if (matches.length < 5) return [];
+  return matches.map((match, index) => {
+    const start = match.index + (match[0].startsWith('\n') ? 1 : 0);
+    const bodyStart = start + match[0].length - (match[0].startsWith('\n') ? 1 : 0);
+    const end = index + 1 < matches.length ? matches[index + 1].index : text.length;
+    const number = Number(match[1]);
+    return {
+      number,
+      title: QUICK_STAGE_LABELS[number - 1] || match[2].trim(),
+      content: text.slice(bodyStart, end).trim()
+    };
+  });
+}
+
+function extractIllustrationPrompts(stageText) {
+  if (!stageText) return [];
+
+  const lines = stageText.split('\n');
+  const coverStart = lines.findIndex(line => {
+    const normalized = line.trim()
+      .replace(/^\s{0,3}#{1,6}\s*/, '')
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1')
+      .replace(/\*\*/g, '')
+      .trim();
+    // Accept common Stage 5 variants such as "5.2 Cover concept",
+    // "FULL COVER PROMPT", "COVER — FULL COVER PROMPT", and "Cover".
+    return /^(?:(?:\d+(?:\.\d+)?\s+)?(?:FULL\s+)?COVER(?:\s+(?:CONCEPT|PROMPT|ILLUSTRATION\s+PROMPT))?|(?:FULL\s+)?COVER\s+PROMPT)(?:\s*[—–:-].*)?$/i.test(normalized);
+  });
+
+  const interiorSectionStart = lines.findIndex(line => {
+    // Accept Markdown headings, bold headings, and headings with trailing
+    // formatting/text. The boundary must be found even if the model varies
+    // the exact Markdown decoration.
+    const normalized = line.trim()
+      .replace(/^\s{0,3}#{1,6}\s*/, '')
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1')
+      .replace(/\*\*/g, '')
+      .trim();
+    return /^5\.3\s+Interior\b.*\bprompt\s+library\b/i.test(normalized);
+  });
+
+  const promptHeading = /^\s{0,3}#{0,4}\s*Page\s*\d+\s*[:—–-].*$/i;
+  const pageStarts = [];
+  lines.forEach((line, index) => {
+    if (promptHeading.test(line.trim())) pageStarts.push(index);
+  });
+
+  const cards = [];
+
+  // Keep the cover prompt separate from the interior-library preamble.
+  if (coverStart >= 0) {
+    const firstPageAfterCover = pageStarts.find(index => index > coverStart);
+    const coverEnd = interiorSectionStart > coverStart
+      ? interiorSectionStart
+      : (firstPageAfterCover ?? lines.length);
+    const coverContent = lines.slice(coverStart, coverEnd).join('\n').trim();
+    if (coverContent.length > 30) {
+      cards.push({ title: 'Book Cover', content: coverContent });
+    }
+  }
+
+  // Shared instructions between the 5.3 heading and Page 1 are prepended
+  // to every interior card so each copied prompt remains independently usable.
+  let sharedInstructions = '';
+  if (interiorSectionStart >= 0 && pageStarts.length) {
+    const firstPage = pageStarts.find(index => index > interiorSectionStart);
+    if (firstPage !== undefined) {
+      sharedInstructions = lines.slice(interiorSectionStart + 1, firstPage)
+        .join('\n').trim();
+    }
+  }
+
+  pageStarts.forEach((start, index) => {
+    const end = index + 1 < pageStarts.length ? pageStarts[index + 1] : lines.length;
+    const pageContent = lines.slice(start, end).join('\n').trim();
+    const content = [sharedInstructions, pageContent].filter(Boolean).join('\n\n');
+    const title = lines[start].trim()
+      .replace(/^\s{0,3}#{0,4}\s*/, '')
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1');
+    if (content.length > 30) cards.push({ title, content });
+  });
+
+  return cards;
+}
+
+export default function StorybookWorkflow() {
+  const [form, setForm] = useState(() => { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY + '-brief') || '{}'); return { ...defaults, ...saved, pageNumbering: saved.pageNumbering === 'No page numbers' ? 'No page numbers' : 'Automatic numbering', pageNumberPosition: saved.pageNumberPosition || 'Bottom right' }; } catch { return defaults; } });
+  const [quickPrompt, setQuickPrompt] = useState('');
+  const [quickResult, setQuickResult] = useState(() => localStorage.getItem(STORAGE_KEY + '-quick-result') || '');
+  const [quickReviewOpen, setQuickReviewOpen] = useState(false);
+  const [copiedKey, setCopiedKey] = useState('');
+  const [showBrief, setShowBrief] = useState(true);
+  useEffect(() => { try { localStorage.setItem(STORAGE_KEY + '-brief', JSON.stringify(form)); localStorage.setItem(STORAGE_KEY + '-quick-result', quickResult); } catch {} }, [form, quickResult]);
+  const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+  const everythingPrompt = `You are an expert children's picture-book publishing team: author, developmental editor, early-years learning designer, character designer, storyboard artist, illustration art director and print-production quality controller.
+
+TASK
+Create ONE COMPLETE SIX-STAGE PRODUCTION PACKAGE for the project brief below. This is Quick Create, so complete all six stages in this single response. Do not stop after Stage 1 and do not ask for approval between stages. Do not provide only Stage 1. Finish by asking the creator to review the complete package.
+
+PROJECT BRIEF
+${buildBrief(form)}
+
+PRODUCTION STAGES
+STAGE 1 — STORY CONCEPT & TITLES
+Provide three distinct age-appropriate title options, recommend one with a brief reason, write a concise synopsis, state the emotional promise, central story question and simple problem the protagonist will solve. Identify assumptions.
+
+STAGE 2 — STORY ARCHITECTURE & CHARACTER BIBLE
+Outline the opening, inciting moment, development, climax, resolution and emotional arc. Establish coherent setting geography and reusable landmarks. Define every recurring character's exact name, species, age impression, proportions, face, eyes, colours, markings, clothing/accessories, silhouette, personality, mannerisms and relationships. Include a reusable character-lock paragraph for each. Preserve the supplied character design.
+
+STAGE 3 — COMPLETE MANUSCRIPT
+Write EXACTLY ${form.pages === 'Custom length' ? (form.customPages || '20') : (form.pages || '10 story pages').replace(' story pages', '')} numbered interior story pages, excluding the separate cover. For every page provide a short page purpose and final read-aloud text. Keep vocabulary and sentence length appropriate for ${form.age}. Create clear page turns and a satisfying resolution.
+
+STAGE 4 — PAGE-BY-PAGE STORYBOARD
+Create exactly one storyboard entry for every manuscript page. Repeat that page's manuscript text VERBATIM. Describe setting, characters, action, emotion, composition, camera angle/distance, foreground, background and focal point. Repeat the manuscript text VERBATIM and specify the correct printed page number and its bottom-right placement in the finished page layout. Interior pages must not have page titles, headings, subtitles or labels. Do not invent story events.
+
+STAGE 5 — COVER & FINISHED-PAGE PROMPTS
+Provide one separate cover concept and one detailed standalone FULL COVER prompt, plus EXACTLY one independent detailed FULL FINISHED-PAGE prompt for every interior story page. These prompts must generate complete book pages, not illustration-only artwork with an empty text area.
+For EVERY interior page, copy ONLY the final manuscript text VERBATIM from Stage 3 and include the correct printed page number. Do not include page titles, headings, subtitles or labels. Do not paraphrase, shorten, correct, rewrite or invent visible story wording. Stage 3 is the single source of truth for all visible text; Stage 4 guides the visual scene only. Include the complete exact text inside each individual prompt so it can be used independently without referring to another page or stage.
+Explicitly instruct the image model to render ONLY the supplied story text, punctuation and page number legibly and exactly as part of the finished page. The lower text panel must contain only the story text and page number, with no page title, heading, subtitle, label or title banner. Compose a complete page with the illustration in the upper portion and a clearly separated, generous text panel below, plus tasteful page-appropriate decorative details. Put the page number visibly at the bottom-right. Repeat the full relevant character-lock traits in each applicable prompt. Maintain consistent character design, scale, geography, time progression, palette, typography and page furniture while varying camera distance purposefully.
+Specify the actual trim size, orientation, bleed and safe margin from the project brief as final-output requirements. If typography may contain errors, flag the need for human proofreading; never silently alter the approved manuscript.
+The separate cover prompt must include the exact approved book title as visible cover lettering, may include only supplied subtitle/author details, and must not have an interior page number. Do not add unapproved words, captions, speech bubbles, logos, watermarks or signatures.
+
+STAGE 6 — FINAL QUALITY CONTROL
+Audit all six stages. Check exact page count, manuscript/storyboard text matching, character consistency, setting geography, props, time progression, emotional continuity, page-turn flow, resolution, age suitability, grammar, spelling, read-aloud clarity, natural moral, factual accuracy where relevant, separate cover, exactly one independent finished-page prompt per interior page, exact manuscript text and page number reproduced in each prompt, complete absence of interior page titles/headings, visible-text spelling and punctuation accuracy, consistent typography and page layout, separate cover title with no interior page number, bleed and safe margins. Return a PASS / NEEDS REVISION checklist with specific stage/page references. Do not silently rewrite approved content.
+
+GLOBAL RULES
+- The cover is separate and is never included in the interior page count.
+- The manuscript is the single source of truth for the storyboard and illustration prompts.
+- Preserve supplied character names and visual traits. Never rename Finnie or change locked design details.
+- Correct obvious typing errors in ordinary descriptive text only when the intended word is unambiguous (for example, "curios" to "curious" and "og" to "of"). Never alter names or intended story details.
+- Clearly label any creative assumptions.
+- Use clear headings and consistent page numbering throughout.
+- Complete all six stages in order in this one response. Do not stop at Stage 1.`;
+
+  const quickSections = useMemo(() => splitQuickPackage(quickResult), [quickResult]);
+  const illustrationCards = useMemo(() => {
+    const illustrationStage = quickSections.find(section => section.number === 5);
+    return illustrationStage ? extractIllustrationPrompts(illustrationStage.content) : [];
+  }, [quickSections]);
+  const copy = async (text, key = 'generic') => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        temp.setAttribute('readonly', '');
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(temp);
+        if (!successful) throw new Error('Clipboard copy failed');
+      }
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(current => current === key ? '' : current), 2200);
+    } catch {
+      window.alert('Copy was not completed. Please select the text and copy it manually.');
+    }
+  };
+  const reset = () => { if (window.confirm('Start a new Storybook project? This clears the saved brief and Quick Create package in this browser.')) { setForm(defaults); setQuickPrompt(''); setQuickResult(''); setQuickReviewOpen(false); localStorage.removeItem(STORAGE_KEY + '-brief'); localStorage.removeItem(STORAGE_KEY + '-quick-result'); localStorage.removeItem(STORAGE_KEY + '-outputs'); localStorage.removeItem(STORAGE_KEY + '-approved'); } };
+  const field = (key, label, options, placeholder, multiline, hint) => <Field key={key} label={label} value={form[key]} onChange={v => update(key, v)} options={options} placeholder={placeholder} multiline={multiline} hint={hint}/>;
+  return <div className="ml-storybook-v22">
+    <div className="ml-v22-intro"><div><div className="ml-v22-eyebrow">STORYBOOK CREATION</div><h2>Let's make a storybook.</h2><p>Build your complete storybook package from one project brief.</p></div><button className="ml-v22-plain" onClick={reset}>New project</button></div>
+    <section className="ml-brief-card"><button className="ml-brief-toggle" onClick={() => setShowBrief(v => !v)}><span><strong>01 · Project brief & book settings</strong><small>Enter your story idea, characters, print specifications and illustration direction.</small></span><span className="ml-brief-toggle-right">{showBrief ? 'Collapse' : 'Edit brief'} <ChevronDown size={16}/></span></button>
+      {showBrief && <div className="ml-brief-content">
+        <Section number="01" title="Story foundation" subtitle="The idea, world, characters and heart of the story" open>
+          {field('title','Story idea or working title',null,'e.g. Finnie and the Missing Butterfly')}
+          {field('age','Target age',['2–3 years','3–5 years','5–7 years','7–9 years'])}
+          {field('pages','Interior story length',['6 story pages','10 story pages','12 story pages','16 story pages','20 story pages','Custom length'])}
+          {form.pages === 'Custom length' && <label className="ml-field"><span>Number of story pages</span><input type="number" min="1" max="40" value={form.customPages} onChange={e => update('customPages', e.target.value)} placeholder="e.g. 24"/><small>Enter 1–40 interior pages. The cover is separate.</small></label>}
+          {field('theme','Theme or genre',['Animals and friendship','Adventure and exploration','Fairy tales and magic','Everyday life','Bible stories','Learning and discovery','Feelings and growing up','Other (custom)'])}
+          {form.theme === 'Other (custom)' && field('customTheme','Your custom theme',null,'Describe your theme')}
+          {field('characterType','Main character type',['Friendly animal','Child','Fantasy character','Bible character','Group of friends','Other (custom)'])}
+          {form.characterType === 'Other (custom)' && field('customCharacter','Describe your main character',null,'Who should the main character be?')}
+          {field('character','Character name or idea (optional)',null,'e.g. Finnie, a curious little fox')}
+          {field('supportingCharacters','Supporting characters (optional)',null,'Names, species and brief roles. Leave blank if the AI should decide.',true)}
+          {field('setting','Story setting / world',null,'e.g. A sunny woodland with a stream and old oak trees')}
+          {field('conflict','Main problem or adventure',null,'What challenge or discovery moves the story forward?',true)}
+          {field('lesson','Story lesson',['Kindness and helping others','Friendship and sharing','Courage and confidence','Honesty and responsibility','Patience and perseverance','Faith and gratitude','Curiosity and discovery','Other (custom)'])}
+          {form.lesson === 'Other (custom)' && field('customLesson','Your custom lesson',null,'What should children take away from the story?',true)}
+          {field('ending','Desired ending',['Hopeful and heartwarming','Funny and joyful','Calm and reassuring','Surprising but satisfying','Open ending for a series'])}
+        </Section>
+        <Section number="02" title="Story structure" subtitle="Choose the storytelling approach and reading experience">
+          {field('storyFormat','Book format',['Standalone story','Part of a series','Series pilot / first book'])}
+          {field('narration','Narration style',['Third-person narrator','First-person narrator','Dialogue-led storytelling'])}
+          {field('plot','Plot structure',['Problem-solving adventure','Discovery and exploration','Friendship and cooperation','Gentle everyday story','Imaginative fantasy','Cause and effect'])}
+          {field('tone','Emotional tone',['Warm and heartwarming','Funny and playful','Exciting and adventurous','Gentle and reassuring','Wonder-filled and magical'])}
+          {field('vocabulary','Vocabulary',['Very simple, repetitive words','Simple, familiar vocabulary','Growing vocabulary with context clues','Rich descriptive language'])}
+          {field('readingLevel','Reading experience',['Read-aloud','Early independent reader','Shared reading with discussion'])}
+          {field('dialogue','Dialogue amount',['Minimal dialogue','Balanced narration and dialogue','Dialogue-rich'])}
+        </Section>
+        <Section number="03" title="Character development" subtitle="Lock the visual identity and personality of every character">
+          {field('appearance','Physical appearance',null,'Fur / skin / hair color, eye color, body shape, size and visible traits.',true)}
+          {field('personality','Personality traits',null,'e.g. Curious, thoughtful, brave but sometimes shy')}
+          {field('clothing','Clothing and accessories',null,'e.g. A teal scarf worn in every scene')}
+          {field('distinctive','Distinctive features',null,'e.g. White tail tip, one small freckle beside the left eye')}
+          {field('relationships','Character relationships',null,'How the main character knows and relates to supporting characters.',true)}
+          {field('consistency','Character consistency',['Standard consistency','Strict visual consistency','Character locked'])}
+        </Section>
+        <Section number="04" title="Book and print specifications" subtitle="Set page layout, print margins and numbering">
+          {field('bookSize','Book size',['20 × 20 cm square','A4 portrait','A4 landscape','A5 portrait','US Letter portrait','Custom size (describe below)'])}
+          {field('customSize','Custom dimensions',null,'e.g. 18 × 18 cm, 2400 × 2400 px at 300 DPI')}
+          {field('orientation','Orientation',['Square','Portrait','Landscape'])}
+          {field('bleed','Bleed',['None','3 mm','5 mm'])}
+          {field('safeMargin','Safe margin',['5 mm','10 mm','12 mm','15 mm'])}
+          {field('textPlacement','Text placement',['Text below illustration','Text above illustration','Text beside illustration','Text over clear area of illustration','Separate text page and illustration page'])}
+          {field('illustrationPlacement','Illustration layout',['Illustration panel above text area','Half-page illustration','Spot illustrations','Two-page spread','Flexible composition per page'])}
+          {field('pageNumbering','Page numbering',['Automatic numbering','No page numbers'])}
+          {field('pageNumberPosition','Number position',['Bottom right','Bottom center','Bottom left'])}
+          {field('footerSpace','Reserved footer space',['Small','Medium','Large'])}
+          <p className="ml-print-note">The cover is separate. Bleed and safe margins must be applied during final page layout/export, not just mentioned in image prompts.</p>
+        </Section>
+        <Section number="05" title="Illustration direction" subtitle="Choose a visual style and keep artwork cohesive">
+          {field('illustrationStyle','Illustration style',['Soft watercolor','3D cartoon','Pastel vector','Colored pencil','Gouache painting','Digital storybook','Custom style'])}
+          {field('palette','Color palette',['Warm natural woodland palette','Soft pastel palette','Bright playful primary colors','Earthy muted colors','Cool dreamy palette','Custom palette'])}
+          {field('lighting','Lighting and atmosphere',['Soft, gentle natural lighting','Warm golden-hour lighting','Bright cheerful daylight','Dreamy magical glow','Cozy indoor lighting'])}
+          {field('backgroundDetail','Background detail',['Simple, minimal backgrounds','Moderate detail, uncluttered','Rich, immersive environments'])}
+          {field('composition','Composition guidance',null,'e.g. Clear focal point, expressive faces, varied camera angles.',true)}
+          {field('customStyle','Custom illustration style (optional)',null,'Add medium, outline, texture or rendering preferences.',true)}
+          {field('negativePrompt','Negative prompt / things to avoid',null,'Things the image model must avoid.',true)}
+        </Section>
+        <div className="ml-brief-save"><CheckCircle2 size={16}/> Your project brief saves automatically in this browser. Update it any time before preparing your complete storybook prompt.</div>
+      </div>}
+    </section>
+    <section className="ml-quick-card">
+      <div className="ml-stage-heading"><div className="ml-stage-number"><Sparkles size={18}/></div><div><div className="ml-v22-eyebrow">QUICK CREATE</div><h3>Your complete storybook package</h3><p>One prompt creates all six stages, including a separate illustration prompt for the cover and every story page.</p></div></div>
+      <div className="ml-stage-actions">
+        <button className="ml-primary" onClick={() => { setQuickPrompt(everythingPrompt); setCopiedKey(''); }}><WandSparkles size={15}/> Prepare complete prompt</button>
+         {quickPrompt && <button className="ml-secondary" onClick={() => copy(quickPrompt, 'quick-prompt')}>{copiedKey === 'quick-prompt' ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button>}
+      </div>
+      {quickPrompt && <textarea className="ml-output-text prompt" readOnly value={quickPrompt}/>}
+      {quickPrompt && <div className="ml-output-block ml-quick-result">
+        <label className="ml-field"><span>Paste the complete ChatGPT response here</span><textarea className="ml-output-text result" value={quickResult} onChange={e => { setQuickResult(e.target.value); setQuickReviewOpen(false); }} placeholder="After ChatGPT creates all six stages, paste the entire response here..."/></label>
+        <div className="ml-stage-actions">
+          <button className="ml-primary" disabled={!quickResult.trim()} onClick={() => setQuickReviewOpen(true)}><ClipboardCheck size={15}/> Organise & review package</button>
+          {quickResult && <button className="ml-secondary" onClick={() => copy(quickResult, 'full-response')}>{copiedKey === 'full-response' ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy full response</>}</button>}
+        </div>
+        <div className="ml-quick-note">Your response is saved in this browser. Organising it does not change the original pasted text.</div>
+      </div>}
+      {quickReviewOpen && quickResult.trim() && <section className="ml-package-review">
+        <div className="ml-stage-heading"><div><div className="ml-v22-eyebrow">PACKAGE REVIEW</div><h3>Your six production stages</h3><p>Open a section to review its content. Copy individual illustration prompts from Stage 5.</p></div></div>
+        {quickSections.length === 6 ? quickSections.map(section => <details className="ml-package-section" key={section.number}>
+          <summary><span className="ml-section-number">{String(section.number).padStart(2,'0')}</span><span className="ml-section-title"><strong>{section.title}</strong><small>{section.number === 5 ? `${illustrationCards.length || 'Page-by-page'} illustration prompt entries` : 'Expand to review this stage'}</small></span><ChevronDown size={17}/></summary>
+          <div className="ml-package-section-content">
+            <textarea className="ml-output-text result ml-section-edit" value={section.content} readOnly />
+            <button className="ml-secondary" onClick={() => copy(section.content, `stage-${section.number}`)}>{copiedKey === `stage-${section.number}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy this stage</>}</button>
+            {section.number === 5 && <div className="ml-illustration-library">
+              <h4>Illustration prompt library</h4>
+              <p>Copy each prompt separately when you're ready to create the artwork.</p>
+              {illustrationCards.length ? illustrationCards.map((card, index) => <details className="ml-illustration-card" key={`${card.title}-${index}`}>
+                <summary><strong>{card.title}</strong><ChevronDown size={15}/></summary>
+                <div><textarea className="ml-output-text result" readOnly value={card.content}/><button className={`ml-secondary ${copiedKey === `illustration-${index}` ? "ml-copy-success" : ""}`} onClick={() => copy(card.content, `illustration-${index}`)}>{copiedKey === `illustration-${index}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button></div>
+              </details>) : <p className="ml-parse-note">I couldn't identify separate Cover / Page headings automatically. The full Stage 5 text is still available above to copy. Use headings such as “Cover” and “Page 1: ...” for individual prompt cards.</p>}
+            </div>}
+          </div>
+        </details>) : <div className="ml-parse-warning"><strong>We couldn't reliably identify all six stage headings.</strong><p>Please check that the pasted response includes headings “STAGE 1” through “STAGE 6”. Your original response is safe in the text box above.</p></div>}
+        <div className="ml-stage-actions"><button className="ml-secondary" onClick={() => setQuickReviewOpen(false)}>Back to response</button><button className="ml-primary" onClick={() => copy(quickSections.map(section => `STAGE ${section.number} — ${section.title}\n\n${section.content}`).join('\n\n'), 'organised-package')} disabled={quickSections.length !== 6}>{copiedKey === 'organised-package' ? <><Check size={15}/> Copied!</> : <><ClipboardCheck size={15}/> Copy organised package</>}</button></div>
+      </section>}
+    </section>
+  </div>;
+}

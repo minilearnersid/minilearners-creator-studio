@@ -67,35 +67,68 @@ function splitQuickPackage(text) {
 
 function extractIllustrationPrompts(stageText) {
   if (!stageText) return [];
-  // Stop the cover card before the next section heading. Some GPT responses
-  // place "5.3 Interior illustration prompt library" before the first Page heading.
-  const cleanStage = stageText.replace(
-    /^\s{0,3}(?:#{1,6}\s*)?5\.3\s+Interior illustration prompt library\s*$/im,
-    ''
-  );
-  const lines = cleanStage.split('\n');
-  const starts = [];
-  const promptHeading = /^\s{0,3}#{0,4}\s*(Cover(?:\s*[—–:-]\s*.*|\s+illustration prompt)?|Page\s*\d+\s*[:—-].*|Page\s*\d+\s*$)/i;
-  lines.forEach((line, index) => {
-    // GPT commonly bold-formats the cover heading (**COVER — ...**),
-    // while interior headings use Markdown heading syntax (### Page 1 — ...).
-    // Normalize surrounding bold markers before matching either format.
+
+  const lines = stageText.split('\n');
+  const coverStart = lines.findIndex(line => {
     const normalized = line.trim()
       .replace(/^\*\*(.*?)\*\*$/, '$1')
-      .replace(/^__(.*?)__$/, '$1');
-    if (promptHeading.test(normalized)) starts.push(index);
+      .replace(/^__(.*?)__$/, '$1')
+      .replace(/^\s{0,3}#{1,6}\s*/, '');
+    return /^COVER(?:\s*[—–:-]\s*.*|\s+illustration prompt)?$/i.test(normalized);
   });
-  if (!starts.length) return [];
-  return starts.map((start, index) => {
-    const end = index + 1 < starts.length ? starts[index + 1] : lines.length;
-    const title = lines[start]
+
+  const interiorSectionStart = lines.findIndex(line =>
+    /^\s{0,3}#{0,6}\s*5\.3\s+Interior(?:\s+finished-page|\s+illustration)?\s+prompt\s+library\s*$/i.test(
+      line.trim().replace(/^\*\*(.*?)\*\*$/, '$1')
+    )
+  );
+
+  const promptHeading = /^\s{0,3}#{0,4}\s*Page\s*\d+\s*[:—–-].*$/i;
+  const pageStarts = [];
+  lines.forEach((line, index) => {
+    if (promptHeading.test(line.trim())) pageStarts.push(index);
+  });
+
+  const cards = [];
+
+  // Keep the cover prompt separate from the interior-library preamble.
+  if (coverStart >= 0) {
+    const coverEnd = interiorSectionStart > coverStart
+      ? interiorSectionStart
+      : (pageStarts.find(index => index > coverStart) ?? lines.length);
+    const coverContent = lines.slice(coverStart, coverEnd).join('\n').trim();
+    if (coverContent.length > 30) {
+      const title = lines[coverStart].trim()
+        .replace(/^\s{0,3}#{0,4}\s*/, '')
+        .replace(/^\*\*(.*?)\*\*$/, '$1')
+        .replace(/^__(.*?)__$/, '$1');
+      cards.push({ title, content: coverContent });
+    }
+  }
+
+  // Shared instructions between the 5.3 heading and Page 1 are prepended
+  // to every interior card so each copied prompt remains independently usable.
+  let sharedInstructions = '';
+  if (interiorSectionStart >= 0 && pageStarts.length) {
+    const firstPage = pageStarts.find(index => index > interiorSectionStart);
+    if (firstPage !== undefined) {
+      sharedInstructions = lines.slice(interiorSectionStart + 1, firstPage)
+        .join('\n').trim();
+    }
+  }
+
+  pageStarts.forEach((start, index) => {
+    const end = index + 1 < pageStarts.length ? pageStarts[index + 1] : lines.length;
+    const pageContent = lines.slice(start, end).join('\n').trim();
+    const content = [sharedInstructions, pageContent].filter(Boolean).join('\n\n');
+    const title = lines[start].trim()
       .replace(/^\s{0,3}#{0,4}\s*/, '')
-      .trim()
       .replace(/^\*\*(.*?)\*\*$/, '$1')
       .replace(/^__(.*?)__$/, '$1');
-    const content = lines.slice(start, end).join('\n').trim();
-    return { title, content };
-  }).filter(item => item.content.length > 30);
+    if (content.length > 30) cards.push({ title, content });
+  });
+
+  return cards;
 }
 
 export default function StorybookWorkflow() {

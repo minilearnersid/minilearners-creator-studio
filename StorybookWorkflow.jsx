@@ -77,12 +77,22 @@ function extractIllustrationPrompts(stageText) {
   const starts = [];
   const promptHeading = /^\s{0,3}#{0,4}\s*(Cover(?:\s*[—–:-]\s*.*|\s+illustration prompt)?|Page\s*\d+\s*[:—-].*|Page\s*\d+\s*$)/i;
   lines.forEach((line, index) => {
-    if (promptHeading.test(line.trim())) starts.push(index);
+    // GPT commonly bold-formats the cover heading (**COVER — ...**),
+    // while interior headings use Markdown heading syntax (### Page 1 — ...).
+    // Normalize surrounding bold markers before matching either format.
+    const normalized = line.trim()
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1');
+    if (promptHeading.test(normalized)) starts.push(index);
   });
   if (!starts.length) return [];
   return starts.map((start, index) => {
     const end = index + 1 < starts.length ? starts[index + 1] : lines.length;
-    const title = lines[start].replace(/^\s{0,3}#{0,4}\s*/, '').trim();
+    const title = lines[start]
+      .replace(/^\s{0,3}#{0,4}\s*/, '')
+      .trim()
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1');
     const content = lines.slice(start, end).join('\n').trim();
     return { title, content };
   }).filter(item => item.content.length > 30);

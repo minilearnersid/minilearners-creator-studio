@@ -71,10 +71,14 @@ function extractIllustrationPrompts(stageText) {
   const lines = stageText.split('\n');
   const coverStart = lines.findIndex(line => {
     const normalized = line.trim()
+      .replace(/^\s{0,3}#{1,6}\s*/, '')
       .replace(/^\*\*(.*?)\*\*$/, '$1')
       .replace(/^__(.*?)__$/, '$1')
-      .replace(/^\s{0,3}#{1,6}\s*/, '');
-    return /^COVER(?:\s*[—–:-]\s*.*|\s+illustration prompt)?$/i.test(normalized);
+      .replace(/\*\*/g, '')
+      .trim();
+    // Accept common Stage 5 variants such as "5.2 Cover concept",
+    // "FULL COVER PROMPT", "COVER — FULL COVER PROMPT", and "Cover".
+    return /^(?:(?:\d+(?:\.\d+)?\s+)?(?:FULL\s+)?COVER(?:\s+(?:CONCEPT|PROMPT|ILLUSTRATION\s+PROMPT))?|(?:FULL\s+)?COVER\s+PROMPT)(?:\s*[—–:-].*)?$/i.test(normalized);
   });
 
   const interiorSectionStart = lines.findIndex(line => {
@@ -106,11 +110,7 @@ function extractIllustrationPrompts(stageText) {
       : (firstPageAfterCover ?? lines.length);
     const coverContent = lines.slice(coverStart, coverEnd).join('\n').trim();
     if (coverContent.length > 30) {
-      const title = lines[coverStart].trim()
-        .replace(/^\s{0,3}#{0,4}\s*/, '')
-        .replace(/^\*\*(.*?)\*\*$/, '$1')
-        .replace(/^__(.*?)__$/, '$1');
-      cards.push({ title, content: coverContent });
+      cards.push({ title: 'Book Cover', content: coverContent });
     }
   }
 

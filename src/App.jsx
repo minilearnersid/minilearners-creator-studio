@@ -105,6 +105,7 @@ function App() {
   const [generated, setGenerated] = useState(false);
   const [copied, setCopied] = useState(false);
   const [randomIdea, setRandomIdea] = useState(null);
+  const [selectedLibraryIdea, setSelectedLibraryIdea] = useState('');
   const [projects] = useState(initialProjects);
   const [form, setForm] = useState({
     title: '', age: '3–5 years', theme: '', character: '', lesson: '', pages: '10 story pages',
@@ -124,6 +125,7 @@ function App() {
   const openStudio = (which) => { setPage(which); setMode('prompt'); setGenerated(false); setMobileOpen(false); };
   const go = (destination) => { setPage(destination); setMobileOpen(false); };
   const useWorksheetIdea = (idea) => {
+    setSelectedLibraryIdea(idea.id);
     setForm(current => ({ ...current, title: idea.title, age: idea.age, subject: idea.subject, activity: idea.activity, objective: idea.objective, difficulty: idea.difficulty, worksheetPages: idea.pages, paperSize: idea.paper }));
     setRandomIdea(idea);
     setGenerated(false);
@@ -254,19 +256,13 @@ function App() {
             .random-idea-actions { display:flex; flex-direction:column; align-items:stretch; gap:8px; flex-shrink:0; }
             .library-heading { display:flex; justify-content:space-between; gap:12px; margin:18px 0 10px; }
             .library-heading span { color:#788078; }
-            .prompt-library-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-            .prompt-library-item { display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:0; padding:14px; text-align:left; color:inherit; background:#fff; border:1px solid #e6e9e3; border-radius:12px; cursor:pointer; transition:border-color .15s,background .15s; }
-            .prompt-library-item:hover,.prompt-library-item.selected { border-color:#8ca68c; background:#f8faf6; }
-            .prompt-library-item strong { line-height:1.35; }
-            .prompt-library-item small,.library-category { color:#707a70; }
-            .library-category { font-size:11px; letter-spacing:.04em; text-transform:uppercase; }
-            .library-use { display:flex; align-items:center; gap:3px; margin-top:2px; color:#55775b; }
+            .library-dropdown-field { max-width:100%; margin-top:12px; }
+            .library-dropdown-field select { width:100%; }
             .worksheet-brief-grid { margin-top:20px; }
             .worksheet-brief-grid h3 { margin:5px 0 0; }
             @media(max-width:700px) {
               .random-idea-card { align-items:stretch; flex-direction:column; }
               .random-idea-actions { flex-direction:row; flex-wrap:wrap; }
-              .prompt-library-grid { grid-template-columns:1fr; }
               .library-heading { flex-direction:column; gap:3px; }
             }
           `}</style>
@@ -281,8 +277,24 @@ function App() {
               </div>
               <div className="random-idea-actions"><button className="secondary-btn" type="button" onClick={suggestRandomWorksheetIdea}><WandSparkles size={15}/> {randomIdea ? 'Try another idea' : 'Surprise me!'}</button>{randomIdea && <button className="text-btn" type="button" onClick={() => useWorksheetIdea(randomIdea)}>Use this idea <ArrowRight size={14}/></button>}</div>
             </div>
-            <div className="library-heading"><strong>Browse ready-made prompts</strong><span>Choose one to pre-fill your brief</span></div>
-            <div className="prompt-library-grid">{worksheetPromptLibrary.map(idea => <button type="button" className={`prompt-library-item ${form.title === idea.title ? 'selected' : ''}`} key={idea.id} onClick={() => useWorksheetIdea(idea)}><span className="library-category">{idea.category}</span><strong>{idea.title}</strong><small>{idea.age} · {idea.activity}</small><span className="library-use">Use idea <ChevronRight size={13}/></span></button>)}</div>
+            <div className="library-heading"><strong>Browse ready-made prompts</strong><span>Select a template to pre-fill your brief</span></div>
+            <label className="field library-dropdown-field">
+              <span>Choose a worksheet prompt</span>
+              <select value={selectedLibraryIdea} onChange={e => {
+                const idea = worksheetPromptLibrary.find(item => item.id === e.target.value);
+                if (idea) useWorksheetIdea(idea);
+              }}>
+                <option value="">Select a ready-made prompt...</option>
+                <optgroup label="Counting & Numbers"><option value="animal-counting">My First Animal Counting Worksheet</option></optgroup>
+                <optgroup label="Alphabet & Literacy"><option value="alphabet-tracing">My First Letter Tracing Pack</option></optgroup>
+                <optgroup label="Matching & Puzzles"><option value="dinosaur-match">Dinosaur Matching Fun</option></optgroup>
+                <optgroup label="Shapes & Colours"><option value="shape-colour">Shapes and Colours Around Us</option></optgroup>
+                <optgroup label="Fine Motor Skills"><option value="fine-motor">Little Hands Practice Pack</option></optgroup>
+                <optgroup label="Science & Nature"><option value="life-cycle">From Caterpillar to Butterfly</option></optgroup>
+                <optgroup label="Bible Learning"><option value="bible-kindness">The Good Samaritan: Kindness Activities</option></optgroup>
+                <optgroup label="Seasonal Activities"><option value="seasonal">A Little Christmas Activity Pack</option></optgroup>
+              </select>
+            </label>
           </section>
           <div className="form-grid worksheet-brief-grid">
             <div className="field full"><div className="eyebrow muted">CUSTOMISE YOUR PROJECT</div><h3>Worksheet brief</h3><p className="field-note">Start with a library idea or create your own. You can edit every field.</p></div>

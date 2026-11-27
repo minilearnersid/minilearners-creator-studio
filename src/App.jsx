@@ -80,6 +80,10 @@ STAGE 4: PAGE-BY-PAGE LAYOUT AND DESIGN
 - If a separate cover page is selected, create a dedicated 'Cover: [title]' section and one standalone cover illustration prompt. The cover is additional to the requested interior page count and must not be counted as an activity page.
 - COVER DESIGN RULES: Design a simple, attractive front cover, not an inventory of the worksheet contents. Use only 3–5 representative characters or objects from the theme. Select a small visually appealing variety. Never reproduce every animal, object, activity, item quantity or learning example from the interior pages. Do not arrange subjects in numbered groups, counting grids, matching rows or catalogues. Create one cohesive scene with a clear visual focal point. Reserve uncluttered space in the upper area for the title and in the lower area for the subtitle and age label. The cover should look like a professionally illustrated children's workbook cover, not an interior activity page.
 - The cover prompt must be independent of the interior illustration prompts. Do not copy the interior page quantity requirements into the cover prompt. Do not ask the image model to render text, letters, numbers, labels, banners, logos or watermarks; cover typography will be typeset separately.
+- Immediately after the standalone cover illustration prompt, include a separate section headed exactly 'Cover Typography & Finishing Specification'. This is a required production deliverable whenever a separate cover is requested.
+- In that section, provide exact, ready-to-typeset wording for: (1) the approved worksheet title, (2) one short, appealing subtitle that accurately describes the activity, and (3) the target age label formatted as 'Ages [minimum]–[maximum]'. Do not leave placeholders or invent a different worksheet title.
+- Also specify the recommended placement of each text element within the reserved upper and lower spaces; font characteristics and clear size hierarchy; alignment; suitable text colours with strong contrast; and how to preserve visual balance without covering the main illustration.
+- Keep the typography specification outside the image-generation prompt. The illustration remains text-free; the typography specification tells the creator exactly what to typeset during final cover layout.
 - In Stage 4, put each illustration prompt under its own clearly labelled heading. Keep the prompt text together in one paragraph or clearly delimited block, and do not mix layout notes or copy-button instructions into the prompt itself.
 
 STAGE 5: ANSWER KEY AND TEACHER NOTES
@@ -93,6 +97,7 @@ STAGE 6: FINAL QUALITY CONTROL
 - Check every count, sequence, question, answer and illustration quantity.
 - Check that all answer-key entries match the actual worksheet tasks.
 - Check the exact number of interior pages separately from any optional cover page. Verify the cover is additional and is not counted as an activity page. Check page size, margins, writing space and print readability.
+- When a separate cover is requested, verify that Stage 4 includes a standalone, text-free cover illustration prompt AND a separate 'Cover Typography & Finishing Specification' with exact title, subtitle, age label, placement, font direction, alignment and colour guidance. Do not mark the cover complete if either deliverable is missing.
 - Identify any assumptions or items that need a human review before publication.
 - End with a concise pass / needs-review checklist. Never mark a check as passed unless it has actually been verified.
 

@@ -45,11 +45,16 @@ function extractPagePrompts(stageText) {
   const headingRe = /^[ \t]{0,3}(?:#{1,6}[ \t]*)?(?:\*\*)?(?:(Worksheet\s+)?Page\s+(\d+)\s*[:—–-]\s*([^\n*]+)|(Cover(?:\s+Page)?\s*[:—–-]\s*([^\n*]+)|Cover\s+Illustration\s+Prompt))\s*(?:\*\*)?[ \t]*$/i;
   const starts = [];
   lines.forEach((line, index) => {
+    if (/^\\s{0,3}(?:#{1,6}\\s*)?(?:\\*\\*)?Cover Typography & Finishing Specification(?:\\*\\*)?\\s*$/i.test(line.trim())) {
+      starts.push({ index, isTypography: true });
+      return;
+    }
     const match = line.trim().match(headingRe);
     if (match) starts.push({ index, match });
   });
   const cards = [];
   starts.forEach((entry, i) => {
+    if (entry.isTypography) return;
     const end = starts[i + 1]?.index ?? lines.length;
     const block = lines.slice(entry.index + 1, end)
       .filter(line => !/^\s*Copy\s+(?:Page\s+\d+|Cover)\s+prompt\s*$/i.test(line))
@@ -68,12 +73,31 @@ function extractPagePrompts(stageText) {
   return cards.sort((a, b) => a.sort - b.sort);
 }
 
+
+function extractCoverTypography(stageText) {
+  if (!stageText) return '';
+  const lines = stageText.split('\n');
+  const headingIndex = lines.findIndex(line =>
+    /^\s{0,3}(?:#{1,6}\s*)?(?:\*\*)?Cover Typography & Finishing Specification(?:\*\*)?\s*$/i.test(line.trim())
+  );
+  if (headingIndex < 0) return '';
+  const body = [];
+  for (let i = headingIndex + 1; i < lines.length; i += 1) {
+    if (/^\s{0,3}#{1,6}\s+/.test(lines[i]) ||
+        /^\s{0,3}(?:\*\*)?(?:Page \d+|Worksheet Page \d+|Cover\s*[:：—–-])/i.test(lines[i])) break;
+    body.push(lines[i]);
+  }
+  return body.join('\n').trim();
+}
+
 export default function WorksheetPackageReview() {
   const [source, setSource] = useState('');
   const [reviewOpen, setReviewOpen] = useState(false);
   const [copiedKey, setCopiedKey] = useState('');
   const sections = useMemo(() => splitPackage(source), [source]);
-  const pagePrompts = useMemo(() => extractPagePrompts(sections.find(s => s.number === 4)?.content || ''), [sections]);
+  const stageFourText = sections.find(s => s.number === 4)?.content || '';
+  const pagePrompts = useMemo(() => extractPagePrompts(stageFourText), [stageFourText]);
+  const coverTypography = useMemo(() => extractCoverTypography(stageFourText), [stageFourText]);
 
   useEffect(() => {
     try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) setSource(saved); } catch {}
@@ -100,7 +124,7 @@ export default function WorksheetPackageReview() {
       {sections.length === 6 ? sections.map(section => <details className="wsr-stage" key={section.number}>
         <summary><span className="wsr-number">{String(section.number).padStart(2, '0')}</span><span className="wsr-stage-title"><strong>{section.title}</strong><small>{section.number === 4 ? `${pagePrompts.length || 'Page-by-page'} illustration prompt entries` : 'Expand to review this stage'}</small></span><ChevronDown size={17}/></summary>
         <div className="wsr-stage-body"><textarea className="wsr-stage-content" readOnly value={section.content}/><button className="wsr-secondary" onClick={() => copy(`STAGE ${section.number} — ${section.title}\n\n${section.content}`, `stage-${section.number}`)}>{copiedKey === `stage-${section.number}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy this stage</>}</button>
-          {section.number === 4 && <div className="wsr-library"><h4>Illustration prompt library</h4><p>Copy each page or cover prompt separately when you're ready to create the artwork.</p>{pagePrompts.length ? pagePrompts.map((card, index) => <details className="wsr-prompt-card" key={`${card.title}-${index}`}><summary><strong>{card.title}</strong><ChevronDown size={15}/></summary><div><textarea readOnly value={card.content}/><button className="wsr-secondary" onClick={() => copy(card.content, `prompt-${index}`)}>{copiedKey === `prompt-${index}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button></div></details>) : <div className="wsr-note"><FileText size={16}/> Separate page prompts were not detected automatically. The complete Stage 4 text is still available above. Use clear headings such as “Page 1: ...” or “Worksheet Page 1: ...” for individual prompt cards.</div>}</div>}
+          {section.number === 4 && <div className="wsr-library"><h4>Illustration prompt library</h4><p>Copy each page or cover prompt separately when you're ready to create the artwork. The cover typography specification is shown separately when included in the response.</p>{coverTypography && <div className="wsr-cover-typography"><div className="wsr-cover-typography-heading"><strong>Cover Typography &amp; Finishing Specification</strong><span>Ready-to-typeset cover text and layout guidance</span></div><textarea readOnly value={coverTypography}/><button className="wsr-secondary" onClick={() => copy(coverTypography, 'cover-typography')}>{copiedKey === 'cover-typography' ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy cover typography</>}</button></div>}{pagePrompts.length ? pagePrompts.map((card, index) => <details className="wsr-prompt-card" key={`${card.title}-${index}`}><summary><strong>{card.title}</strong><ChevronDown size={15}/></summary><div><textarea readOnly value={card.content}/><button className="wsr-secondary" onClick={() => copy(card.content, `prompt-${index}`)}>{copiedKey === `prompt-${index}` ? <><Check size={14}/> Copied!</> : <><Copy size={14}/> Copy prompt</>}</button></div></details>) : <div className="wsr-note"><FileText size={16}/> Separate page prompts were not detected automatically. The complete Stage 4 text is still available above. Use clear headings such as “Page 1: ...” or “Worksheet Page 1: ...” for individual prompt cards.</div>}</div>}
         </div>
       </details>) : <div className="wsr-warning"><strong>We couldn't reliably identify all six stage headings.</strong><p>Please check that your pasted response includes headings “STAGE 1” through “STAGE 6”. Your original response remains safe in the text box above.</p></div>}
       <div className="wsr-actions"><button className="wsr-secondary" onClick={() => setReviewOpen(false)}>Back to response</button><button className="wsr-primary" disabled={sections.length !== 6} onClick={() => copy(sections.map(s => `STAGE ${s.number} — ${s.title}\n\n${s.content}`).join('\n\n'), 'full-package')}>{copiedKey === 'full-package' ? <><Check size={15}/> Copied!</> : <><ClipboardCheck size={15}/> Copy organised package</>}</button></div>

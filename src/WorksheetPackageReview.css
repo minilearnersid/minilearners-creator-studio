@@ -27,3 +27,9 @@ label.field.full.worksheet-cover-option > small {
   margin: 6px 0 0 28px;
   text-align: left;
 }
+
+.wsr-cover-typography{border:1px solid #dfe7d9;border-radius:11px;background:#f7f9f4;padding:14px;margin:12px 0 16px}
+.wsr-cover-typography-heading{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.wsr-cover-typography-heading strong{font-size:14px;color:#38533b}
+.wsr-cover-typography-heading span{font-size:12px;color:#718071}
+.wsr-cover-typography textarea{display:block;width:100%;min-height:145px;resize:vertical;box-sizing:border-box;border:1px solid #e1e6dc;border-radius:9px;background:#fff;padding:12px;font-family:inherit;font-size:13px;line-height:1.6;color:#314136;margin-bottom:10px}

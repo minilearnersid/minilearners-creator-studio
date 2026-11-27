@@ -77,11 +77,18 @@ function extractIllustrationPrompts(stageText) {
     return /^COVER(?:\s*[—–:-]\s*.*|\s+illustration prompt)?$/i.test(normalized);
   });
 
-  const interiorSectionStart = lines.findIndex(line =>
-    /^\s{0,3}#{0,6}\s*5\.3\s+Interior(?:\s+finished-page|\s+illustration)?\s+prompt\s+library\s*$/i.test(
-      line.trim().replace(/^\*\*(.*?)\*\*$/, '$1')
-    )
-  );
+  const interiorSectionStart = lines.findIndex(line => {
+    // Accept Markdown headings, bold headings, and headings with trailing
+    // formatting/text. The boundary must be found even if the model varies
+    // the exact Markdown decoration.
+    const normalized = line.trim()
+      .replace(/^\s{0,3}#{1,6}\s*/, '')
+      .replace(/^\*\*(.*?)\*\*$/, '$1')
+      .replace(/^__(.*?)__$/, '$1')
+      .replace(/\*\*/g, '')
+      .trim();
+    return /^5\.3\s+Interior\b.*\bprompt\s+library\b/i.test(normalized);
+  });
 
   const promptHeading = /^\s{0,3}#{0,4}\s*Page\s*\d+\s*[:—–-].*$/i;
   const pageStarts = [];
@@ -93,9 +100,10 @@ function extractIllustrationPrompts(stageText) {
 
   // Keep the cover prompt separate from the interior-library preamble.
   if (coverStart >= 0) {
+    const firstPageAfterCover = pageStarts.find(index => index > coverStart);
     const coverEnd = interiorSectionStart > coverStart
       ? interiorSectionStart
-      : (pageStarts.find(index => index > coverStart) ?? lines.length);
+      : (firstPageAfterCover ?? lines.length);
     const coverContent = lines.slice(coverStart, coverEnd).join('\n').trim();
     if (coverContent.length > 30) {
       const title = lines[coverStart].trim()
